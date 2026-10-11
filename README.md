@@ -7,6 +7,25 @@ point to external design websites (Dribbble, Mobbin, Land-book…).
 
 ![theme](https://img.shields.io/badge/theme-light_minimal-18181b?style=flat-square)
 
+## Cloud sync + Google sign-in (optional)
+
+The library works fully offline/local by default. To turn it into a multi-user cloud library:
+
+1. Create a free project at [supabase.com](https://supabase.com)
+2. **SQL Editor** → run everything in [`supabase-setup.sql`](supabase-setup.sql)
+   (creates `designs` + `favourites` tables with row-level security)
+3. **Authentication → Providers → Google** → enable. The Google Cloud OAuth steps
+   are written at the bottom of the SQL file (redirect URI, client ID/secret)
+4. **Authentication → URL Configuration** → add your site URL
+   (`https://whwgywgr.github.io/design-library/`) and `http://localhost:8123/` for local testing
+5. Copy **Project URL** + **anon public key** (Settings → API) into `config.js`
+6. Push. A **"Sign in with Google"** button appears in the header.
+
+Once configured: designs added through the form are saved to the `designs` table
+(visible to everyone, editable/deletable only by the owner), favourites sync to the
+`favourites` table per account, and Sign out returns everything to browser-local mode.
+No config = current offline/local behaviour, unchanged.
+
 ## Quick start
 
 - **No server needed** — double-click `index.html`. The site loads a light manifest and

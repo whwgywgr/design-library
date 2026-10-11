@@ -381,6 +381,25 @@ button {
 .fav-star:hover { transform: scale(1.15); color: #f5a623; }
 .fav-star.on { color: #f5a623; }
 
+#authArea { display: flex; align-items: center; gap: 8px; }
+.userchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 31px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-2);
+  max-width: 210px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 .pn-nav {
   display: flex;
   justify-content: space-between;

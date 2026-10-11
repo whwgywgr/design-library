@@ -444,19 +444,26 @@ function main() {
   fs.writeFileSync(path.join(ROOT, "manifest.js"), "/* AUTO-GENERATED light manifest — full content is in data/<id>.json chunks */\nwindow.DESIGN_MANIFEST = " + JSON.stringify(manifest).replace(/</g, "\\u003c") + ";\n");
   console.log("  manifest.js + " + designs.length + " chunk(s) in data/ written");
 
-  // bump the cache-buster on the manifest.js script tag in index.html,
-  // so visitors get the fresh library as soon as Pages deploys (no hard refresh needed)
+  // bump cache-busters on every versioned asset in index.html,
+  // so visitors get fresh code as soon as Pages deploys (no hard refresh needed)
   const idxPath = path.join(ROOT, "index.html");
   if (exists(idxPath)) {
     let idx = readText(idxPath);
-    const stamp = Date.now();
-    if (/<script src="manifest\.js\?v=[^"]*"><\/script>/.test(idx)) {
-      idx = idx.replace(/(<script src="manifest\.js\?v=)[^"]*("><\/script>)/, "$1" + stamp + "$2");
-    } else if (idx.includes('<script src="manifest.js?v=1"></script>')) {
-      idx = idx.replace('<script src="manifest.js?v=1"></script>', '<script src="manifest.js?v=' + stamp + '"></script>');
-    }
+    const stamp = String(Date.now());
+    [["manifest.js"], ["assets/app.js"], ["assets/style.css"]].forEach(function (pair) {
+      var file = pair[0];
+      var reOldFixed = new RegExp("(<script src=\"" + file + "\\?v=)[^\"]*(\"></script>)");
+      var reOldCss = new RegExp("(<link rel=\"stylesheet\" href=\"" + file + "\\?v=)[^\"]*(\" />)");
+      if (idx.indexOf(file + "?v=") !== -1) {
+        idx = idx.replace(new RegExp("(" + file.replace(/\./g, "\\.") + "\\?v=)[0-9]+"), "$1" + stamp);
+      } else if (reOldFixed.test(idx)) {
+        idx = idx.replace(reOldFixed, "$1" + stamp + "$2");
+      } else if (reOldCss.test(idx)) {
+        idx = idx.replace(reOldCss, "$1" + stamp + "$2");
+      }
+    });
     fs.writeFileSync(idxPath, idx);
-    console.log("  cache-buster in index.html → manifest.js?v=" + stamp);
+    console.log("  cache-busters bumped in index.html → ?v=" + stamp);
   }
 
   console.log("\n  " + designs.length + " design(s) packed → designs.js (" + fmtKB(fs.readFileSync(OUT_FILE)) + ")");

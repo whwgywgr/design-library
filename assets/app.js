@@ -16,6 +16,7 @@
     catch (e) { return false; }
   })();
   var LOCAL = loadLocal();
+  var CLOUD = []; // designs from Supabase (signed in)
   var DESIGNS = mergeDesigns();
   var state = { q: "", tag: "All", sort: "newest" };
 
@@ -108,7 +109,8 @@
 
   function mergeDesigns() {
     var locals = LOCAL.slice().sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)); });
-    return locals.concat(BUILTIN);
+    var clouds = CLOUD.slice().sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)); });
+    return locals.concat(clouds, BUILTIN);
   }
 
   function refreshDesigns() {
@@ -249,6 +251,72 @@
     if (i === -1) f.push(id); else f.splice(i, 1);
     try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch (e) { /* noop */ }
     return f.indexOf(id) !== -1;
+  }
+
+  /* ---------- cloud sync (Supabase — see config.js + supabase-setup.sql) ---------- */
+
+  function rowToRec(row) {
+    var strip = function (md) {
+      var m = String(md || "").match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+      return m ? md.slice(m[0].length) : String(md || "");
+    };
+    return {
+      id: row.id,
+      _cloud: true,
+      title: row.title,
+      description: row.description || "",
+      tags: row.tags || [],
+      type: row.preview_html ? "code" : (row.docs_md ? "docs" : (row.link ? "link" : "docs")),
+      link: row.link || null,
+      updated: row.updated_at,
+      files: row.files || [],
+      preview: row.preview_html ? { file: "index.html", html: row.preview_html } : null,
+      docs: row.docs_md ? { file: "design.md", raw: row.docs_md, body: strip(row.docs_md) } : null
+    };
+  }
+
+  function renderAuth() {
+    var el = $("#authArea");
+    if (!el || !window.Cloud || !Cloud.enabled()) return;
+    var u = Cloud.getUser();
+    if (u) {
+      var meta = u.user_metadata || {};
+      var name = meta.full_name || meta.name || meta.user_name || u.email || "Signed in";
+      el.innerHTML = '<span class="userchip" title="' + esc(u.email || "") + '">👤 ' + esc(String(name)) + "</span>" +
+        '<button class="btn btn-sm" id="signOutBtn">Sign out</button>';
+      var so = $("#signOutBtn");
+      if (so) so.addEventListener("click", function () { Cloud.signOut(); });
+    } else {
+      el.innerHTML = '<button class="btn btn-sm btn-primary" id="signInBtn">Sign in with Google</button>';
+      var si = $("#signInBtn");
+      if (si) si.addEventListener("click", function () {
+        Cloud.signIn().catch(function (err) { toast("Sign-in failed: " + (err.message || err), 3200); });
+      });
+    }
+  }
+
+  function onSignedIn() {
+    toast("Signed in — syncing…", 2200);
+    Cloud.listDesigns().then(function (rows) {
+      CLOUD = rows.map(function (row) { var rec = rowToRec(row); rec._cloud = true; return rec; });
+      refreshDesigns();
+      if (location.hash === "#/" || location.hash === "") renderGallery();
+    }).catch(function (err) { toast("Could not load cloud designs: " + (err.message || err), 3400); });
+    Cloud.listFavs().then(function (keys) {
+      var cur = getFavs(), merged = cur.slice();
+      keys.forEach(function (k) { if (merged.indexOf(k) === -1) merged.push(k); });
+      if (merged.length !== cur.length) {
+        try { localStorage.setItem(FAV_KEY, JSON.stringify(merged)); } catch (e) { /* noop */ }
+        renderGallery();
+      }
+    }).catch(function () { /* favourites stay local */ });
+  }
+
+  function onSignedOut() {
+    CLOUD = [];
+    refreshDesigns();
+    if (location.hash.indexOf("#/d/") === 0) location.hash = "#/";
+    else renderGallery();
   }
 
   /* ---------- icons ---------- */
@@ -412,6 +480,11 @@
         var on = toggleFav(id);
         star.classList.toggle("on", on);
         star.textContent = on ? "★" : "☆";
+        if (window.Cloud && Cloud.enabled() && Cloud.getUser()) {
+          (on ? Cloud.addFav(id) : Cloud.removeFav(id)).catch(function (err) {
+            toast("Favourite sync failed: " + (err.message || err));
+          });
+        }
         // refresh when the favourites chip must appear/disappear, or while inside it
         if (state.tag === "__fav" || hadFavs !== (getFavs().length > 0)) renderGallery();
       });
@@ -534,7 +607,7 @@
         actions += '<button class="btn" data-act="download-docs">' + I.download + "Download design.md</button>";
       }
     }
-    if (d.local) {
+    if (d.local || d._cloud) {
       actions += '<button class="btn" data-act="edit">' + I.pencil + "Edit</button>" +
         '<button class="btn" data-act="export">' + I.download + "Export for build</button>" +
         '<button class="btn" data-act="delete">' + I.trash + "Delete</button>";
@@ -583,12 +656,29 @@
     var actExport = $('[data-act="export"]');
     if (actExport) actExport.addEventListener("click", function () { exportLocalDesign(d); });
     var actDelete = $('[data-act="delete"]');
-    if (actDelete) actDelete.addEventListener("click", function () { deleteLocalDesign(d); });
+    if (actDelete) actDelete.addEventListener("click", function () {
+      if (d._cloud) {
+        if (!confirm('Delete "' + d.title + '" from the cloud?')) return;
+        Cloud.deleteDesign(d.id).then(function () {
+          CLOUD = CLOUD.filter(function (x) { return x.id !== d.id; });
+          refreshDesigns();
+          toast("Design deleted from cloud");
+          location.hash = "#/";
+        }).catch(function (err) { toast("Delete failed: " + (err.message || err), 3200); });
+      } else {
+        deleteLocalDesign(d);
+      }
+    });
     var actFav = $('[data-act="fav"]');
     if (actFav) actFav.addEventListener("click", function () {
       var on = toggleFav(d.id);
       actFav.textContent = on ? "★ Favourited" : "☆ Favourite";
       toast(on ? "Added to favourites ★" : "Removed from favourites");
+      if (window.Cloud && Cloud.enabled() && Cloud.getUser()) {
+        (on ? Cloud.addFav(d.id) : Cloud.removeFav(d.id)).catch(function (err) {
+          toast("Favourite sync failed: " + (err.message || err));
+        });
+      }
     });
     var actLink = $('[data-act="copy-link"]');
     if (actLink) actLink.addEventListener("click", function () { copyText(location.href, "Link copied to clipboard"); });
@@ -798,6 +888,11 @@
       "</div></div></div>";
     document.body.appendChild(bd);
 
+    if (window.Cloud && Cloud.enabled() && Cloud.getUser()) {
+      var fn = $(".form-note", bd);
+      if (fn) fn.innerHTML = "Saves to <b>your Supabase account</b> — visible to everyone in the library";
+    }
+
     var fTitle = $("#fTitle", bd), fDesc = $("#fDesc", bd), fTags = $("#fTags", bd),
       fLink = $("#fLink", bd), fHtml = $("#fHtml", bd), fCss = $("#fCss", bd),
       fJs = $("#fJs", bd), fMd = $("#fMd", bd), pv = $("#fPreview", bd);
@@ -948,18 +1043,48 @@
         } : null,
         docs: md.trim() ? { file: "design.md", raw: md, body: stripFrontmatter(md) } : null
       };
-      if (isEdit) {
-        for (var i = 0; i < LOCAL.length; i++) if (LOCAL[i].id === existing.id) LOCAL[i] = record;
-      } else {
-        LOCAL.push(record);
+      var useCloud = window.Cloud && Cloud.enabled() && Cloud.getUser() && (!isEdit || existing._cloud);
+      function commitLocal() {
+        if (isEdit && existing && !existing._cloud) {
+          for (var i = 0; i < LOCAL.length; i++) if (LOCAL[i].id === existing.id) LOCAL[i] = record;
+        } else if (!isEdit) {
+          LOCAL.push(record);
+        }
+        persistLocal();
+        refreshDesigns();
+        clearDraft();
+        close();
+        toast(isEdit ? "Design updated" : "Design added to your library");
+        var target = "#/d/" + encodeURIComponent(record.id);
+        if (location.hash === target) route(); else location.hash = target;
       }
-      persistLocal();
-      refreshDesigns();
-      clearDraft();
-      close();
-      toast(isEdit ? "Design updated" : "Design added to your library");
-      var target = "#/d/" + encodeURIComponent(record.id);
-      if (location.hash === target) route(); else location.hash = target;
+
+      if (useCloud) {
+        toast("Saving to cloud…", 2500);
+        Cloud.saveDesign({
+          id: (isEdit && existing._cloud) ? existing.id : undefined,
+          title: record.title, description: record.description, tags: record.tags,
+          link: record.link, files: record.files,
+          preview_html: record.preview ? record.preview.html : null,
+          docs_md: record.docs ? record.docs.raw : null
+        }).then(function (row) {
+          var rec = rowToRec(row);
+          rec._cloud = true;
+          CLOUD = CLOUD.filter(function (x) { return x.id !== rec.id; });
+          CLOUD.unshift(rec);
+          refreshDesigns();
+          clearDraft();
+          close();
+          toast(isEdit ? "Design updated in cloud ✓" : "Design saved to cloud ✓");
+          var target = "#/d/" + encodeURIComponent(rec.id);
+          if (location.hash === target) route(); else location.hash = target;
+        }).catch(function (err) {
+          toast("Cloud save failed — kept in this browser (" + (err.message || err) + ")", 3800);
+          commitLocal();
+        });
+      } else {
+        commitLocal();
+      }
     });
   }
 
@@ -1061,7 +1186,7 @@
 
   var GUIDE_HTML =
     "<h4>Fastest — right here, saved in this browser</h4>" +
-    "<p>Click <code>Add design</code>, paste your HTML — plus separate CSS and JavaScript files if you have them, and an optional markdown doc — then save. It appears in the library instantly. Designs added this way live in your browser's storage; to make one permanent for everyone, open it and press <b>Export for build</b>, drop the downloaded <code>imported-&lt;id&gt;.json</code> into <code>design-library/imported/</code>, then run <code>node build.js</code>. You can also drag &amp; drop <code>.html</code>, <code>.css</code>, <code>.js</code> or <code>.md</code> files anywhere on this page.</p>" +
+    "<p>Click <code>Add design</code>, paste your HTML — plus separate CSS and JavaScript files if you have them, and an optional markdown doc — then save. It appears in the library instantly. Designs added this way live in your browser's storage — <b>unless you sign in with Google</b> (once Supabase is configured, see the README): then they save to the shared cloud library. To make one permanent for everyone, open it and press <b>Export for build</b>, drop the downloaded <code>imported-&lt;id&gt;.json</code> into <code>design-library/imported/</code>, then run <code>node build.js</code>. You can also drag &amp; drop <code>.html</code>, <code>.css</code>, <code>.js</code> or <code>.md</code> files anywhere on this page.</p>" +
     "<h4>Way 1 — a design folder <code>designs/&lt;slug&gt;/</code></h4>" +
     "<p>Create a folder with your design document and a self-contained page. The build picks it up automatically:</p>" +
     "<pre>designs/my-design/\n" +
@@ -1126,6 +1251,20 @@
 
     $("#addBtn").addEventListener("click", function () { openForm(null, null); });
     $("#footerGuide").addEventListener("click", function (e) { e.preventDefault(); openGuide(); });
+
+    // cloud (Supabase) — only active when config.js is filled in
+    if (window.Cloud) {
+      renderAuth(); // button appears immediately once config.js is set
+      Cloud.init().then(function () {
+        renderAuth();
+        if (Cloud.getUser()) onSignedIn();
+        document.addEventListener("cloud:auth", function (e) {
+          renderAuth();
+          if (e.detail) onSignedIn(); else onSignedOut();
+        });
+      });
+      if (!Cloud.enabled()) renderAuth();
+    }
 
     document.addEventListener("keydown", function (e) {
       if (e.key === "/" && document.activeElement !== $("#searchInput") &&
