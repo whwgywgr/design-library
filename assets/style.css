@@ -348,6 +348,18 @@ button {
 }
 .card-preview-type .icon { width: 12px; height: 12px; }
 
+.card-preview .loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  z-index: 1;
+}
+.loading-big { text-align: center; color: var(--text-3); font-size: 13.5px; padding: 70px 0; }
+
 .card-body {
   padding: 14px 16px 15px;
   display: flex;

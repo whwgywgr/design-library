@@ -8,8 +8,8 @@
 (function () {
   "use strict";
 
-  var LIB = window.DESIGN_LIBRARY || { designs: [], generatedAt: null };
-  var BUILTIN = LIB.designs || [];
+  var MAN = window.DESIGN_MANIFEST || { designs: [], generatedAt: null };
+  var BUILTIN = (MAN.designs || []).map(function (d) { d._light = true; return d; });
   var LOCAL_KEY = "designlib.local.v1";
   var storageOK = (function () {
     try { var t = "__dl_probe__"; localStorage.setItem(t, "1"); localStorage.removeItem(t); return true; }
@@ -201,6 +201,44 @@
     return doc;
   }
 
+  /* ---------- lazy content loading ----------
+     Manifest entries are light (no code). Full content lives in data/<id>.json
+     chunks fetched on demand — with a designs.js fallback for file:// / offline. */
+
+  var CONTENT = {};
+
+  function ensureFullLibrary() {
+    if (window.DESIGN_LIBRARY) return Promise.resolve();
+    return new Promise(function (res) {
+      var s = document.createElement("script");
+      s.src = "designs.js";
+      s.onload = res;
+      s.onerror = res;
+      document.head.appendChild(s);
+    });
+  }
+
+  function getContent(d) {
+    if (!d._light) return Promise.resolve(d);      // local / already-full record
+    if (CONTENT[d.id]) return Promise.resolve(CONTENT[d.id]);
+    function fallback() {
+      return ensureFullLibrary().then(function () {
+        var full = (window.DESIGN_LIBRARY && window.DESIGN_LIBRARY.designs.find(function (x) { return x.id === d.id; })) || d;
+        full._light = false;
+        CONTENT[d.id] = full;
+        return full;
+      });
+    }
+    if (location.protocol === "file:") return fallback();
+    return fetch("data/" + encodeURIComponent(d.id) + ".json?v=" + encodeURIComponent(MAN.generatedAt || ""))
+      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+      .then(function (full) { full._light = false; CONTENT[d.id] = full; return full; })
+      .catch(fallback);
+  }
+
+  function hasPreview(d) { return !!(d.preview || d.hasPreview); }
+  function hasDocs(d) { return !!(d.docs || d.hasDocs); }
+
   /* ---------- icons ---------- */
 
   var I = {
@@ -270,7 +308,7 @@
         '<div class="ph-domain">' + I.external + esc(domainOf(d.link)) + "</div>" +
         "</div></div>";
     }
-    if (d.type === "docs" || !d.preview) {
+    if (d.type === "docs" || !hasPreview(d)) {
       return '<div class="card-preview">' + typeBadge("docs") +
         '<div class="card-preview-placeholder">' +
         '<div class="ph-big" aria-hidden="true">M&darr;</div>' +
@@ -334,53 +372,80 @@
     if (items.length) attachCardPreviews(items);
   }
 
-  var previewFrames = {}; // id -> html (kept out of the DOM attrs)
-
   function attachCardPreviews(items) {
-    previewFrames = {};
     var boxes = [];
     items.forEach(function (d) {
-      if (d.type !== "code" || !d.preview) return;
+      if (d.type !== "code" || !hasPreview(d)) return;
       var card = $('.card[data-id="' + d.id + '"]');
       if (!card) return;
       var box = $(".card-preview", card);
-      previewFrames[d.id] = d.preview.html;
       boxes.push({ box: box, id: d.id });
     });
+
+    function fit(frame, box) {
+      var w = box.clientWidth;
+      if (w > 0) frame.style.transform = "scale(" + (w / 1200) + ")";
+    }
 
     function mount(item) {
       var box = item.box;
       if (box.getAttribute("data-mounted")) return;
       box.setAttribute("data-mounted", "1");
+      var loading = document.createElement("div");
+      loading.className = "loading";
+      loading.textContent = "loading preview…";
+      box.appendChild(loading);
       var frame = document.createElement("iframe");
       frame.className = "card-preview-frame";
-      frame.setAttribute("loading", "lazy");
       frame.setAttribute("tabindex", "-1");
       frame.setAttribute("aria-hidden", "true");
-      frame.srcdoc = previewFrames[item.id] || "";
       box.appendChild(frame);
+      fit(frame, box);
 
-      function fit() {
-        var w = box.clientWidth;
-        if (w > 0) frame.style.transform = "scale(" + (w / 1200) + ")";
-      }
-      fit();
-      if (window.ResizeObserver) new ResizeObserver(fit).observe(box);
+      getContent(byId(item.id)).then(function (full) {
+        if (!box.isConnected) return;
+        frame.onload = function () { if (loading.parentNode) loading.remove(); };
+        frame.srcdoc = (full && full.preview) ? full.preview.html : "";
+        fit(frame, box);
+        setTimeout(function () { if (loading.parentNode) loading.remove(); }, 1200);
+      });
+    }
+
+    function unmount(item) {
+      var box = item.box;
+      if (!box.getAttribute("data-mounted")) return;
+      var f = box.querySelector("iframe");
+      if (f) f.remove(); // stops the design's scripts/CPU when scrolled far away
+      delete box.dataset.mounted;
     }
 
     if ("IntersectionObserver" in window) {
-      var io = new IntersectionObserver(function (entries) {
+      var near = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           if (en.isIntersecting) {
             var item = boxes.filter(function (b) { return b.box === en.target; })[0];
-            if (item) { mount(item); io.unobserve(en.target); }
+            if (item) mount(item);
           }
         });
-      }, { rootMargin: "300px" });
-      boxes.forEach(function (b) { io.observe(b.box); });
+      }, { rootMargin: "260px" });
+      var far = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.isIntersecting) {
+            var item = boxes.filter(function (b) { return b.box === en.target; })[0];
+            if (item) unmount(item);
+          }
+        });
+      }, { rootMargin: "-460px 0px -460px 0px" });
+      boxes.forEach(function (b) { near.observe(b.box); far.observe(b.box); });
     } else {
-      boxes.forEach(mount);
+      boxes.forEach(function (b) { mount(b); });
     }
+
+    addEventListener("resize", function () {
+      document.querySelectorAll(".card-preview-frame").forEach(function (f) {
+        if (f.parentElement) fit(f, f.parentElement);
+      });
+    });
   }
 
   /* ---------- detail ---------- */
@@ -406,10 +471,10 @@
     if (d.type === "link") {
       actions = '<a class="btn btn-primary" href="' + esc(d.link) + '" target="_blank" rel="noopener">' + I.external + "Visit website</a>";
     } else {
-      if (d.type === "code" && d.preview) {
+      if (d.type === "code" && hasPreview(d)) {
         actions += '<button class="btn btn-primary" data-act="open-preview">' + I.external + "Open full preview</button>";
       }
-      if (d.docs) {
+      if (hasDocs(d)) {
         actions += '<button class="btn" data-act="download-docs">' + I.download + "Download design.md</button>";
       }
     }
@@ -421,10 +486,12 @@
 
     var tabs = "";
     if (d.type === "code") {
-      tabs += '<button class="tab active" data-tab="preview">' + I.eye + "Preview</button>";
-      tabs += '<button class="tab" data-tab="code">' + I.code + 'Code <span class="tab-n">' + (d.files ? d.files.length : 0) + "</span></button>";
+      if (hasPreview(d)) {
+        tabs += '<button class="tab active" data-tab="preview">' + I.eye + "Preview</button>";
+      }
+      tabs += '<button class="tab' + (hasPreview(d) ? "" : " active") + '" data-tab="code">' + I.code + 'Code <span class="tab-n">' + (d.files ? d.files.length : 0) + "</span></button>";
     }
-    if (d.docs) {
+    if (hasDocs(d)) {
       tabs += '<button class="tab' + (d.type !== "code" ? " active" : "") + '" data-tab="docs">' + I.doc + "Design doc</button>";
     }
 
@@ -444,11 +511,13 @@
 
     // actions
     var actOpen = $('[data-act="open-preview"]');
-    if (actOpen) actOpen.addEventListener("click", function () { openFullPreview(d); });
+    if (actOpen) actOpen.addEventListener("click", function () { getContent(d).then(openFullPreview); });
     var actDocs = $('[data-act="download-docs"]');
     if (actDocs) actDocs.addEventListener("click", function () {
-      download("design.md", d.docs.raw || d.docs.content, "text/markdown;charset=utf-8");
-      toast("design.md downloaded");
+      getContent(d).then(function (full) {
+        download("design.md", (full.docs && (full.docs.raw || full.docs.content)) || "", "text/markdown;charset=utf-8");
+        toast("design.md downloaded");
+      });
     });
     var actEdit = $('[data-act="edit"]');
     if (actEdit) actEdit.addEventListener("click", function () { openForm(d, null); });
@@ -458,7 +527,7 @@
     if (actDelete) actDelete.addEventListener("click", function () { deleteLocalDesign(d); });
 
     // tabs
-    var active = d.type === "code" ? "preview" : (d.docs ? "docs" : null);
+    var active = d.type === "code" ? (hasPreview(d) ? "preview" : "code") : (hasDocs(d) ? "docs" : null);
     if (active) showTab(d, active);
 
     $all(".tab").forEach(function (t) {
@@ -473,9 +542,12 @@
   function showTab(d, tab) {
     var panel = $("#panel");
     if (!panel) return;
-    if (tab === "preview") renderPreviewPanel(d, panel);
-    else if (tab === "code") renderCodePanel(d, panel);
-    else if (tab === "docs") renderDocsPanel(d, panel);
+    panel.innerHTML = '<div class="loading-big">Loading…</div>';
+    getContent(d).then(function (full) {
+      if (tab === "preview") renderPreviewPanel(full, panel);
+      else if (tab === "code") renderCodePanel(full, panel);
+      else if (tab === "docs") renderDocsPanel(full, panel);
+    });
   }
 
   /* ---------- preview tab ---------- */
@@ -494,7 +566,8 @@
       "</div>";
 
     var frame = $(".preview-frame", panel);
-    frame.srcdoc = d.preview.html;
+    frame.srcdoc = (d.preview && d.preview.html) ? d.preview.html :
+      '<body style="font-family:sans-serif;color:#9a9aa3;display:grid;place-items:center;height:100vh;margin:0">No preview available for this design.</body>';
 
     $all(".seg button", panel).forEach(function (b) {
       b.addEventListener("click", function () {
@@ -918,7 +991,7 @@
     "}</pre>" +
     "<p>Link-only entries just need <code>\"type\": \"link\"</code> and a <code>url</code>.</p>" +
     "<h4>Then rebuild the library</h4>" +
-    "<p>Run <code>node build.js</code> (or <code>start.bat</code>) inside <code>design-library/</code>. Everything is packed into <code>designs.js</code>, so the site keeps working offline from a double-click and can be deployed to any static host as-is.</p>";
+    "<p>Run <code>node build.js</code> (or <code>start.bat</code>) inside <code>design-library/</code>. Designs are packed into per-design chunks (<code>data/</code>) plus a light manifest for fast lazy loading, with a full <code>designs.js</code> fallback so the site keeps working offline from a double-click or any static host.</p>";
 
   function openGuide() {
     var bd = document.createElement("div");
@@ -945,8 +1018,8 @@
 
   function initChrome() {
     updateCounts();
-    $("#footerGenerated").textContent = LIB.generatedAt
-      ? "Library built " + fmtDate(LIB.generatedAt)
+    $("#footerGenerated").textContent = MAN.generatedAt
+      ? "Library built " + fmtDate(MAN.generatedAt)
       : "";
 
     $("#searchInput").addEventListener("input", function (e) {

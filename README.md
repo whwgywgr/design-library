@@ -9,9 +9,14 @@ point to external design websites (Dribbble, Mobbin, Land-book…).
 
 ## Quick start
 
-- **No server needed** — double-click `index.html`. Everything is packed into `designs.js`.
+- **No server needed** — double-click `index.html`. The site loads a light manifest and
+  lazy-fetches each design's chunk; on `file://` it falls back to the packed `designs.js`.
 - Or run `start.bat` — rebuilds the library and serves it at `http://localhost:8123`.
 - Or serve the folder any way you like (`python -m http.server`, `npx serve`, Netlify, GitHub Pages…).
+
+**Lazy loading:** the gallery only renders previews for cards near the viewport
+(mounts on approach, unmounts when scrolled far away), and full source/docs/previews
+are fetched per design on demand — so page weight stays low as the collection grows.
 
 ## What's inside
 
@@ -22,7 +27,9 @@ design-library/
 │   ├── style.css         ← light minimal design system
 │   ├── app.js            ← gallery, preview/code/docs tabs, add/edit form, search
 │   └── lib/              ← marked.js + highlight.js (local, offline)
-├── designs.js            ← GENERATED — all designs packed for offline use
+├── designs.js            ← GENERATED — full fallback pack (file:// / offline)
+├── manifest.js           ← GENERATED — light manifest, loaded first
+├── data/                 ← GENERATED — per-design JSON chunks, lazy-fetched on http
 ├── library.json          ← registry: existing projects + link-only entries
 ├── imported/             ← JSON exports from the site's "Export for build" button
 ├── build.js              ← packs everything into designs.js   (node build.js)
