@@ -1,0 +1,841 @@
+/* ============================================================
+   Design Library — app
+   Hash routing:  #/  → gallery    #/d/<id>  → design detail
+   Everything is served from window.DESIGN_LIBRARY (built by build.js),
+   so the site works from file:// and from any static host.
+   ============================================================ */
+
+(function () {
+  "use strict";
+
+  var LIB = window.DESIGN_LIBRARY || { designs: [], generatedAt: null };
+  var BUILTIN = LIB.designs || [];
+  var LOCAL_KEY = "designlib.local.v1";
+  var storageOK = (function () {
+    try { var t = "__dl_probe__"; localStorage.setItem(t, "1"); localStorage.removeItem(t); return true; }
+    catch (e) { return false; }
+  })();
+  var LOCAL = loadLocal();
+  var DESIGNS = mergeDesigns();
+  var state = { q: "", tag: "All" };
+
+  /* ---------- helpers ---------- */
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function byId(id) {
+    for (var i = 0; i < DESIGNS.length; i++) if (DESIGNS[i].id === id) return DESIGNS[i];
+    return null;
+  }
+
+  function domainOf(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url || ""; }
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    if (isNaN(d)) return "";
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function fmtSize(str) {
+    var kb = (new TextEncoder().encode(str).length) / 1024;
+    return kb >= 100 ? Math.round(kb) + " KB" : kb.toFixed(1) + " KB";
+  }
+
+  function download(filename, content, mime) {
+    var blob = new Blob([content], { type: mime || "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
+  function copyText(text, okMsg) {
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); toast(okMsg); }
+      catch (e) { toast("Copy failed — select the code manually"); }
+      ta.remove();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback);
+    } else fallback();
+  }
+
+  var toastTimer = null;
+  function toast(msg, ms) {
+    var el = $("#toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, ms || 1800);
+  }
+
+  /* ---------- local designs (added through the form, saved in this browser) ---------- */
+
+  var PREVIEW_SHIM = '<script>(function(){try{window.localStorage.getItem("__probe__")}catch(e){var s={};var o={getItem:function(k){return k in s?s[k]:null},setItem:function(k,v){s[k]=String(v)},removeItem:function(k){delete s[k]},clear:function(){s={}},key:function(i){return Object.keys(s)[i]||null}};Object.defineProperty(o,"length",{get:function(){return Object.keys(s).length},configurable:true});try{Object.defineProperty(window,"localStorage",{value:o,configurable:true})}catch(e2){}}})();<\/script>';
+
+  function loadLocal() {
+    try {
+      var raw = localStorage.getItem(LOCAL_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function persistLocal() {
+    try { localStorage.setItem(LOCAL_KEY, JSON.stringify(LOCAL)); }
+    catch (e) { toast("Could not save — browser storage is full or blocked", 3500); }
+  }
+
+  function mergeDesigns() {
+    var locals = LOCAL.slice().sort(function (a, b) { return String(b.updated).localeCompare(String(a.updated)); });
+    return locals.concat(BUILTIN);
+  }
+
+  function refreshDesigns() {
+    DESIGNS = mergeDesigns();
+    updateCounts();
+  }
+
+  function slugify(s) {
+    var out = String(s || "design").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+    return out || "design";
+  }
+
+  function stripFrontmatter(md) {
+    var m = String(md || "").match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
+    return m ? md.slice(m[0].length) : String(md || "");
+  }
+
+  function uniqueId(base, exceptId) {
+    var ids = {};
+    DESIGNS.forEach(function (d) { ids[d.id] = 1; });
+    if (exceptId) delete ids[exceptId];
+    var id = base, i = 2;
+    while (ids[id]) id = base + "-" + (i++);
+    return id;
+  }
+
+  function readFileAsText(file) {
+    return new Promise(function (resolve) {
+      var r = new FileReader();
+      r.onload = function () { resolve(String(r.result || "")); };
+      r.onerror = function () { resolve(""); };
+      r.readAsText(file);
+    });
+  }
+
+  function buildPreviewHtml(html) {
+    var doc = String(html || "");
+    if (/<head[^>]*>/i.test(doc)) {
+      return doc.replace(/<head([^>]*)>/i, function (m) { return m + PREVIEW_SHIM; });
+    }
+    return PREVIEW_SHIM + doc;
+  }
+
+  /* ---------- icons ---------- */
+
+  var I = {
+    code: '<svg class="icon" viewBox="0 0 24 24"><path d="m8 8-5 4 5 4"/><path d="m16 8 5 4-5 4"/><path d="m13 5-2 14"/></svg>',
+    eye: '<svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+    doc: '<svg class="icon" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/></svg>',
+    link: '<svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>',
+    external: '<svg class="icon" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+    download: '<svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>',
+    copy: '<svg class="icon" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    back: '<svg class="icon" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>',
+    desktop: '<svg class="icon" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    tablet: '<svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>',
+    phone: '<svg class="icon" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M12 18h.01"/></svg>',
+    file: '<svg class="icon" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6"/></svg>',
+    folder: '<svg class="icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>',
+    search: '<svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+    layers: '<svg class="icon" viewBox="0 0 24 24"><path d="m12 2 10 6-10 6L2 8Z"/><path d="m2 14 10 6 10-6"/></svg>',
+    pencil: '<svg class="icon" viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+    trash: '<svg class="icon" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+  };
+
+  var TYPE_LABEL = { code: "Code", docs: "Docs", link: "Link" };
+  var TYPE_ICON = { code: I.code, docs: I.doc, link: I.link };
+
+  /* ---------- routing ---------- */
+
+  function route() {
+    var hash = location.hash || "#/";
+    var m = hash.match(/^#\/d\/([^/?]+)/);
+    if (m) renderDetail(decodeURIComponent(m[1]));
+    else renderGallery();
+    window.scrollTo({ top: 0 });
+  }
+
+  /* ---------- gallery ---------- */
+
+  function allTags() {
+    var counts = {};
+    DESIGNS.forEach(function (d) {
+      (d.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+    });
+    return Object.keys(counts).sort(function (a, b) {
+      return counts[b] - counts[a] || a.localeCompare(b);
+    }).map(function (t) { return { name: t, count: counts[t] }; });
+  }
+
+  function filtered() {
+    var q = state.q.trim().toLowerCase();
+    return DESIGNS.filter(function (d) {
+      if (state.tag !== "All" && (d.tags || []).indexOf(state.tag) === -1) return false;
+      if (!q) return true;
+      var hay = (d.title + " " + (d.description || "") + " " + (d.tags || []).join(" ")).toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+  }
+
+  function typeBadge(type) {
+    return '<span class="card-preview-type">' + (TYPE_ICON[type] || I.file) + esc(TYPE_LABEL[type] || "Item") + "</span>";
+  }
+
+  function cardPreview(d) {
+    if (d.type === "link") {
+      return '<div class="card-preview">' + typeBadge("link") +
+        '<div class="card-preview-placeholder">' +
+        '<div class="ph-big" aria-hidden="true">' + esc(domainOf(d.link).charAt(0).toUpperCase()) + "</div>" +
+        '<div class="ph-domain">' + I.external + esc(domainOf(d.link)) + "</div>" +
+        "</div></div>";
+    }
+    if (d.type === "docs" || !d.preview) {
+      return '<div class="card-preview">' + typeBadge("docs") +
+        '<div class="card-preview-placeholder">' +
+        '<div class="ph-big" aria-hidden="true">M&darr;</div>' +
+        '<div class="ph-domain">' + I.doc + "Design document</div>" +
+        "</div></div>";
+    }
+    return '<div class="card-preview">' + typeBadge("code") + "</div>";
+  }
+
+  function cardHTML(d) {
+    return '<a class="card" href="#/d/' + encodeURIComponent(d.id) + '" data-id="' + esc(d.id) + '">' +
+      cardPreview(d) +
+      '<div class="card-body">' +
+      '<h3 class="card-title">' + esc(d.title) + "</h3>" +
+      (d.description ? '<p class="card-desc">' + esc(d.description) + "</p>" : "") +
+      '<div class="card-tags">' +
+      (d.tags || []).slice(0, 4).map(function (t) { return '<span class="mini-tag">' + esc(t) + "</span>"; }).join("") +
+      "</div>" +
+      '<span class="card-meta">' + fmtDate(d.updated) + (d.local ? " · on this device" : "") + "</span>" +
+      "</div></a>";
+  }
+
+  function renderGallery() {
+    document.title = "Design Library";
+    var tags = allTags();
+    var items = filtered();
+
+    var html =
+      '<div class="container">' +
+      '<div class="gallery-hero"><h1>Design Library</h1>' +
+      "<p>Your personal collection — open any design to see the live result, browse the full source code, read or download the design document, and visit the original site.</p></div>" +
+      '<div class="toolbar"><button class="chip' + (state.tag === "All" ? " active" : "") + '" data-tag="All">All <span class="chip-n">' + DESIGNS.length + "</span></button>" +
+      tags.map(function (t) {
+        return '<button class="chip' + (state.tag === t.name ? " active" : "") + '" data-tag="' + esc(t.name) + '">' +
+          esc(t.name) + ' <span class="chip-n">' + t.count + "</span></button>";
+      }).join("") +
+      '<span class="toolbar-meta">' + items.length + " design" + (items.length === 1 ? "" : "s") + "</span></div>";
+
+    if (!items.length) {
+      html += '<div class="empty">' + I.search +
+        "<h3>Nothing found</h3><p>Try a different search or tag.</p></div>";
+    } else {
+      html += '<div class="grid" id="grid">' +
+        items.map(cardHTML).join("") + "</div>";
+    }
+    html += "</div>";
+    $("#app").innerHTML = html;
+
+    // tag chips
+    $all(".chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        state.tag = chip.getAttribute("data-tag");
+        renderGallery();
+      });
+    });
+
+    // live card previews (lazy)
+    if (items.length) attachCardPreviews(items);
+  }
+
+  var previewFrames = {}; // id -> html (kept out of the DOM attrs)
+
+  function attachCardPreviews(items) {
+    previewFrames = {};
+    var boxes = [];
+    items.forEach(function (d) {
+      if (d.type !== "code" || !d.preview) return;
+      var card = $('.card[data-id="' + d.id + '"]');
+      if (!card) return;
+      var box = $(".card-preview", card);
+      previewFrames[d.id] = d.preview.html;
+      boxes.push({ box: box, id: d.id });
+    });
+
+    function mount(item) {
+      var box = item.box;
+      if (box.getAttribute("data-mounted")) return;
+      box.setAttribute("data-mounted", "1");
+      var frame = document.createElement("iframe");
+      frame.className = "card-preview-frame";
+      frame.setAttribute("loading", "lazy");
+      frame.setAttribute("tabindex", "-1");
+      frame.setAttribute("aria-hidden", "true");
+      frame.srcdoc = previewFrames[item.id] || "";
+      box.appendChild(frame);
+
+      function fit() {
+        var w = box.clientWidth;
+        if (w > 0) frame.style.transform = "scale(" + (w / 1200) + ")";
+      }
+      fit();
+      if (window.ResizeObserver) new ResizeObserver(fit).observe(box);
+    }
+
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            var item = boxes.filter(function (b) { return b.box === en.target; })[0];
+            if (item) { mount(item); io.unobserve(en.target); }
+          }
+        });
+      }, { rootMargin: "300px" });
+      boxes.forEach(function (b) { io.observe(b.box); });
+    } else {
+      boxes.forEach(mount);
+    }
+  }
+
+  /* ---------- detail ---------- */
+
+  function openFullPreview(d) {
+    var blob = new Blob([d.preview.html], { type: "text/html" });
+    var url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+  }
+
+  function renderDetail(id) {
+    var d = byId(id);
+    var app = $("#app");
+    if (!d) {
+      app.innerHTML = '<div class="container"><div class="empty">' + I.search +
+        '<h3>Design not found</h3><p>It may have been renamed or removed. <a href="#/">Back to the library.</a></p></div></div>';
+      return;
+    }
+    document.title = d.title + " — Design Library";
+
+    var actions = "";
+    if (d.type === "link") {
+      actions = '<a class="btn btn-primary" href="' + esc(d.link) + '" target="_blank" rel="noopener">' + I.external + "Visit website</a>";
+    } else {
+      if (d.type === "code" && d.preview) {
+        actions += '<button class="btn btn-primary" data-act="open-preview">' + I.external + "Open full preview</button>";
+      }
+      if (d.docs) {
+        actions += '<button class="btn" data-act="download-docs">' + I.download + "Download design.md</button>";
+      }
+    }
+    if (d.local) {
+      actions += '<button class="btn" data-act="edit">' + I.pencil + "Edit</button>" +
+        '<button class="btn" data-act="export">' + I.download + "Export for build</button>" +
+        '<button class="btn" data-act="delete">' + I.trash + "Delete</button>";
+    }
+
+    var tabs = "";
+    if (d.type === "code") {
+      tabs += '<button class="tab active" data-tab="preview">' + I.eye + "Preview</button>";
+      tabs += '<button class="tab" data-tab="code">' + I.code + 'Code <span class="tab-n">' + (d.files ? d.files.length : 0) + "</span></button>";
+    }
+    if (d.docs) {
+      tabs += '<button class="tab' + (d.type !== "code" ? " active" : "") + '" data-tab="docs">' + I.doc + "Design doc</button>";
+    }
+
+    app.innerHTML =
+      '<div class="container detail">' +
+      '<a class="back-link" href="#/">' + I.back + "Library</a>" +
+      '<div class="detail-head"><div class="detail-head-text">' +
+      '<h1 class="detail-title">' + esc(d.title) + "</h1>" +
+      (d.description ? '<p class="detail-sub">' + esc(d.description) + "</p>" : "") +
+      '<div class="detail-tags">' + (d.tags || []).map(function (t) { return '<span class="mini-tag">' + esc(t) + "</span>"; }).join("") +
+      '<span class="card-meta" style="align-self:center">Updated ' + fmtDate(d.updated) + "</span>" +
+      "</div></div>" +
+      '<div class="detail-actions">' + actions + "</div></div>" +
+      (tabs ? '<div class="tabs">' + tabs + "</div>" : "") +
+      '<div class="panel" id="panel"></div>' +
+      "</div>";
+
+    // actions
+    var actOpen = $('[data-act="open-preview"]');
+    if (actOpen) actOpen.addEventListener("click", function () { openFullPreview(d); });
+    var actDocs = $('[data-act="download-docs"]');
+    if (actDocs) actDocs.addEventListener("click", function () {
+      download("design.md", d.docs.raw || d.docs.content, "text/markdown;charset=utf-8");
+      toast("design.md downloaded");
+    });
+    var actEdit = $('[data-act="edit"]');
+    if (actEdit) actEdit.addEventListener("click", function () { openForm(d, null); });
+    var actExport = $('[data-act="export"]');
+    if (actExport) actExport.addEventListener("click", function () { exportLocalDesign(d); });
+    var actDelete = $('[data-act="delete"]');
+    if (actDelete) actDelete.addEventListener("click", function () { deleteLocalDesign(d); });
+
+    // tabs
+    var active = d.type === "code" ? "preview" : (d.docs ? "docs" : null);
+    if (active) showTab(d, active);
+
+    $all(".tab").forEach(function (t) {
+      t.addEventListener("click", function () {
+        $all(".tab").forEach(function (x) { x.classList.remove("active"); });
+        t.classList.add("active");
+        showTab(d, t.getAttribute("data-tab"));
+      });
+    });
+  }
+
+  function showTab(d, tab) {
+    var panel = $("#panel");
+    if (!panel) return;
+    if (tab === "preview") renderPreviewPanel(d, panel);
+    else if (tab === "code") renderCodePanel(d, panel);
+    else if (tab === "docs") renderDocsPanel(d, panel);
+  }
+
+  /* ---------- preview tab ---------- */
+
+  function renderPreviewPanel(d, panel) {
+    panel.innerHTML =
+      '<div class="preview-stage">' +
+      '<div class="preview-toolbar">' +
+      '<span class="pt-label">' + I.layers + ' preview · rendered from full source</span>' +
+      '<div class="seg" role="group" aria-label="Viewport width">' +
+      '<button data-w="" class="active">' + I.desktop + 'Desktop</button>' +
+      '<button data-w="w-tablet">' + I.tablet + 'Tablet</button>' +
+      '<button data-w="w-phone">' + I.phone + 'Phone</button>' +
+      "</div></div>" +
+      '<div class="preview-frame-wrap"><iframe class="preview-frame" title="Live preview"></iframe></div>' +
+      "</div>";
+
+    var frame = $(".preview-frame", panel);
+    frame.srcdoc = d.preview.html;
+
+    $all(".seg button", panel).forEach(function (b) {
+      b.addEventListener("click", function () {
+        $all(".seg button", panel).forEach(function (x) { x.classList.remove("active"); });
+        b.classList.add("active");
+        frame.className = "preview-frame " + (b.getAttribute("data-w") || "");
+      });
+    });
+  }
+
+  /* ---------- code tab ---------- */
+
+  function renderCodePanel(d, panel) {
+    var files = d.files || [];
+    var current = files[0];
+
+    panel.innerHTML =
+      '<div class="code-layout">' +
+      '<div class="file-list"><div class="file-list-title">Files</div>' +
+      files.map(function (f, i) {
+        return '<button class="file-item' + (i === 0 ? " active" : "") + '" data-f="' + i + '">' +
+          I.file + esc(f.path) + '<span class="fi-size">' + fmtSize(f.content) + "</span></button>";
+      }).join("") +
+      "</div>" +
+      '<div class="code-pane">' +
+      '<div class="code-pane-head"><span class="cp-file" id="cpFile"></span>' +
+      '<div class="cp-actions">' +
+      '<button class="btn btn-sm" id="cpCopy">' + I.copy + "Copy</button>" +
+      '<button class="btn btn-sm" id="cpDl">' + I.download + "Download</button>" +
+      "</div></div>" +
+      '<div class="code-scroll"><pre><code class="hljs" id="codeEl"></code></pre></div>' +
+      "</div></div>";
+
+    function showFile(f) {
+      current = f;
+      $("#cpFile").innerHTML = I.file + " " + esc(f.path);
+      var el = $("#codeEl");
+      el.className = "hljs";
+      el.removeAttribute("data-lang");
+      el.textContent = f.content;
+      if (window.hljs) {
+        try { hljs.highlightElement(el); } catch (e) { /* leave plain */ }
+      }
+    }
+
+    $all(".file-item", panel).forEach(function (b) {
+      b.addEventListener("click", function () {
+        $all(".file-item", panel).forEach(function (x) { x.classList.remove("active"); });
+        b.classList.add("active");
+        showFile(files[parseInt(b.getAttribute("data-f"), 10)]);
+      });
+    });
+
+    $("#cpCopy").addEventListener("click", function () {
+      copyText(current.content, "Copied " + current.path);
+    });
+    $("#cpDl").addEventListener("click", function () {
+      var name = current.path.split("/").pop();
+      download(name, current.content);
+      toast("Downloaded " + name);
+    });
+
+    showFile(files[0] || { path: "—", content: "" });
+  }
+
+  /* ---------- docs tab ---------- */
+
+  function renderDocsPanel(d, panel) {
+    var body = d.docs.body || d.docs.content || "";
+    var html;
+    try { html = window.marked ? marked.parse(body) : "<pre>" + esc(body) + "</pre>"; }
+    catch (e) { html = "<pre>" + esc(body) + "</pre>"; }
+
+    panel.innerHTML =
+      '<div class="docs-pane">' +
+      '<div class="docs-head"><span class="dh-file">' + I.doc + " " + esc(d.docs.file || "design.md") + "</span>" +
+      '<div class="cp-actions">' +
+      '<button class="btn btn-sm" id="mdCopy">' + I.copy + "Copy markdown</button>" +
+      '<button class="btn btn-sm" id="mdDl">' + I.download + "Download .md</button>" +
+      "</div></div>" +
+      '<div class="md" id="mdBody">' + html + "</div></div>";
+
+    if (window.hljs) {
+      $all("#mdBody pre code").forEach(function (el) {
+        try { hljs.highlightElement(el); } catch (e) { /* noop */ }
+      });
+    }
+
+    $("#mdCopy").addEventListener("click", function () { copyText(d.docs.raw || body, "Markdown copied"); });
+    $("#mdDl").addEventListener("click", function () {
+      download("design.md", d.docs.raw || body, "text/markdown;charset=utf-8");
+      toast("design.md downloaded");
+    });
+  }
+
+  /* ---------- add / edit design form ---------- */
+
+  function openForm(existing, prefill) {
+    if (document.querySelector(".modal-backdrop")) return;
+    var isEdit = !!existing;
+    var bd = document.createElement("div");
+    bd.className = "modal-backdrop";
+    bd.innerHTML =
+      '<div class="modal modal-wide" role="dialog" aria-modal="true" aria-label="' + (isEdit ? "Edit design" : "Add a design") + '">' +
+      '<div class="modal-head">' + I.folder + "<h3>" + (isEdit ? "Edit design" : "Add a design") + "</h3>" +
+      '<button class="modal-close" aria-label="Close">' +
+      '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>' +
+      '<div class="modal-body form-body">' +
+      '<div class="form-grid">' +
+      '<div class="form-col">' +
+      '<div class="field-row"><label>Title *</label><input type="text" id="fTitle" placeholder="My awesome design"></div>' +
+      '<div class="field-row"><label>Short description</label><input type="text" id="fDesc" placeholder="One line shown on the card"></div>' +
+      '<div class="field-row"><label>Tags <span class="ft-hint">comma separated</span></label><input type="text" id="fTags" placeholder="landing, component, dashboard"></div>' +
+      '<div class="field-row"><label>Source website <span class="ft-hint">optional</span></label><input type="url" id="fLink" placeholder="https://…"></div>' +
+      '<div class="field-row"><label>Full HTML code <span class="ft-hint">single file with inline CSS/JS previews best</span></label>' +
+      '<textarea id="fHtml" rows="9" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt; …paste your full code, or drop a .html file anywhere…"></textarea></div>' +
+      '<div class="field-row"><label>Design doc <span class="ft-hint">optional markdown, becomes design.md</span></label>' +
+      '<textarea id="fMd" rows="5" spellcheck="false" placeholder="# My Design&#10;- palette, typography, structure…"></textarea></div>' +
+      "</div>" +
+      '<div class="form-col"><div class="pv-box">' +
+      '<div class="pv-label">' + I.eye + " Live preview</div>" +
+      '<iframe class="pv-frame" id="fPreview" title="Live preview"></iframe>' +
+      "</div></div>" +
+      "</div>" +
+      '<div class="form-actions">' +
+      '<button class="btn btn-primary" id="fSave">' + (isEdit ? "Save changes" : "Add to library") + "</button>" +
+      '<button class="btn" id="fImport">' + I.file + "Import files…</button>" +
+      '<span class="form-note">Saved in this browser · open the design and use <b>Export for build</b> to make it permanent</span>' +
+      "</div></div></div>";
+    document.body.appendChild(bd);
+
+    var fTitle = $("#fTitle", bd), fDesc = $("#fDesc", bd), fTags = $("#fTags", bd),
+      fLink = $("#fLink", bd), fHtml = $("#fHtml", bd), fMd = $("#fMd", bd),
+      pv = $("#fPreview", bd);
+
+    if (isEdit) {
+      fTitle.value = existing.title;
+      fDesc.value = existing.description || "";
+      fTags.value = (existing.tags || []).join(", ");
+      fLink.value = existing.link || "";
+      if (existing.files && existing.files[0]) fHtml.value = existing.files[0].content;
+      if (existing.docs) fMd.value = existing.docs.raw || existing.docs.body || "";
+    } else if (prefill) {
+      if (prefill.html) fHtml.value = prefill.html;
+      if (prefill.markdown) fMd.value = prefill.markdown;
+      if (prefill.title) fTitle.value = prefill.title;
+      if (prefill.link) fLink.value = prefill.link;
+    }
+
+    function updatePreview() {
+      pv.srcdoc = fHtml.value.trim() ? buildPreviewHtml(fHtml.value) : "";
+    }
+    var pvTimer = null;
+    fHtml.addEventListener("input", function () {
+      clearTimeout(pvTimer);
+      pvTimer = setTimeout(updatePreview, 400);
+    });
+    updatePreview();
+
+    function close() { bd.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    bd.addEventListener("click", function (e) { if (e.target === bd) close(); });
+    $(".modal-close", bd).addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    setTimeout(function () { fTitle.focus(); }, 50);
+
+    // import files straight into the fields
+    var fi = document.createElement("input");
+    fi.type = "file";
+    fi.multiple = true;
+    fi.accept = ".html,.htm,.md,.markdown,.txt";
+    fi.style.display = "none";
+    bd.appendChild(fi);
+    $("#fImport", bd).addEventListener("click", function () { fi.click(); });
+    fi.addEventListener("change", function () {
+      var files = Array.prototype.slice.call(fi.files || []);
+      var pending = files.length;
+      if (!pending) return;
+      files.forEach(function (file) {
+        readFileAsText(file).then(function (text) {
+          if (text) {
+            if (/\.html?$/.test(file.name.toLowerCase())) {
+              fHtml.value = text;
+              if (!fTitle.value.trim()) fTitle.value = file.name.replace(/\.[^.]+$/, "");
+              updatePreview();
+            } else {
+              fMd.value = text;
+            }
+          }
+          if (--pending === 0) { fi.value = ""; toast("Files imported into the form"); }
+        });
+      });
+    });
+
+    $("#fSave", bd).addEventListener("click", function () {
+      var title = fTitle.value.trim();
+      var html = fHtml.value;
+      var md = fMd.value;
+      var link = fLink.value.trim();
+      if (!title) { fTitle.focus(); toast("Give the design a title"); return; }
+      if (!html.trim() && !md.trim() && !link) { fHtml.focus(); toast("Paste HTML code, markdown, or add a link"); return; }
+      var record = {
+        id: isEdit ? existing.id : uniqueId(slugify(title)),
+        title: title,
+        description: fDesc.value.trim(),
+        tags: fTags.value.split(",").map(function (t) { return t.trim(); }).filter(Boolean),
+        type: html.trim() ? "code" : (md.trim() ? "docs" : "link"),
+        link: link || null,
+        updated: new Date().toISOString(),
+        local: true,
+        files: html.trim() ? [{ path: "index.html", lang: "html", content: html }] : [],
+        preview: html.trim() ? { file: "index.html", html: buildPreviewHtml(html) } : null,
+        docs: md.trim() ? { file: "design.md", raw: md, body: stripFrontmatter(md) } : null
+      };
+      if (isEdit) {
+        for (var i = 0; i < LOCAL.length; i++) if (LOCAL[i].id === existing.id) LOCAL[i] = record;
+      } else {
+        LOCAL.push(record);
+      }
+      persistLocal();
+      refreshDesigns();
+      close();
+      toast(isEdit ? "Design updated" : "Design added to your library");
+      var target = "#/d/" + encodeURIComponent(record.id);
+      if (location.hash === target) route(); else location.hash = target;
+    });
+  }
+
+  function exportLocalDesign(d) {
+    var payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      id: d.id,
+      title: d.title,
+      description: d.description || "",
+      tags: d.tags || [],
+      link: d.link || null,
+      html: d.files && d.files[0] ? d.files[0].content : null,
+      markdown: d.docs ? (d.docs.raw || d.docs.body) : null
+    };
+    download("imported-" + d.id + ".json", JSON.stringify(payload, null, 2), "application/json");
+    toast("Downloaded imported-" + d.id + ".json — drop it into design-library/imported/ and run node build.js", 4200);
+  }
+
+  function deleteLocalDesign(d) {
+    if (!window.confirm('Delete "' + d.title + '" from this browser?')) return;
+    LOCAL = LOCAL.filter(function (x) { return x.id !== d.id; });
+    persistLocal();
+    refreshDesigns();
+    toast("Design deleted");
+    if (location.hash === "#/") route(); else location.hash = "#/";
+  }
+
+  /* ---------- drag & drop import ---------- */
+
+  function setupDragDrop() {
+    var depth = 0;
+    function hasFiles(e) {
+      if (!e.dataTransfer) return false;
+      var types = e.dataTransfer.types || [];
+      for (var i = 0; i < types.length; i++) if (types[i] === "Files") return true;
+      return false;
+    }
+    function hint(on) {
+      var el = $("#dropHint");
+      if (el) el.classList.toggle("show", !!on);
+    }
+    window.addEventListener("dragenter", function (e) {
+      if (!hasFiles(e)) return;
+      depth++;
+      hint(true);
+    });
+    window.addEventListener("dragleave", function () {
+      depth = Math.max(0, depth - 1);
+      if (!depth) hint(false);
+    });
+    window.addEventListener("dragover", function (e) { e.preventDefault(); });
+    window.addEventListener("drop", function (e) {
+      e.preventDefault();
+      depth = 0;
+      hint(false);
+      var files = (e.dataTransfer && e.dataTransfer.files) || [];
+      if (files.length) handleDroppedFiles(files);
+    });
+  }
+
+  function handleDroppedFiles(files) {
+    var prefill = {};
+    var list = Array.prototype.slice.call(files);
+    var pending = list.length, fired = false;
+    function open() {
+      if (fired) return;
+      fired = true;
+      openForm(null, prefill);
+    }
+    list.forEach(function (file) {
+      readFileAsText(file).then(function (text) {
+        if (/\.html?$/.test(file.name.toLowerCase())) {
+          prefill.html = text;
+          if (!prefill.title) prefill.title = file.name.replace(/\.[^.]+$/, "");
+        } else {
+          prefill.markdown = text;
+        }
+        if (--pending === 0) open();
+      });
+    });
+  }
+
+  /* ---------- guide modal ---------- */
+
+  var GUIDE_HTML =
+    "<h4>Fastest — right here, saved in this browser</h4>" +
+    "<p>Click <code>Add design</code>, paste your full HTML (plus an optional markdown doc), and save. It appears in the library instantly. Designs added this way live in your browser's storage; to make one permanent for everyone, open it and press <b>Export for build</b>, drop the downloaded <code>imported-&lt;id&gt;.json</code> into <code>design-library/imported/</code>, then run <code>node build.js</code>. You can also just drag &amp; drop a <code>.html</code> or <code>.md</code> file anywhere on this page.</p>" +
+    "<h4>Way 1 — a design folder <code>designs/&lt;slug&gt;/</code></h4>" +
+    "<p>Create a folder with your design document and a self-contained page. The build picks it up automatically:</p>" +
+    "<pre>designs/my-design/\n" +
+    "  design.md      ← doc, starts with frontmatter\n" +
+    "  index.html     ← full code (inline CSS/JS = best preview)</pre>" +
+    "<pre>---\n" +
+    "title: My Design\ndescription: One-line summary.\n" +
+    "tags: [landing, component]\n" +
+    "link: https://example.com   ← optional source link\n" +
+    "---\n# My Design …</pre>" +
+    "<h4>Way 2 — register an existing project in <code>library.json</code></h4>" +
+    "<p>Point an entry at any folder in your workspace; list the files to collect:</p>" +
+    "<pre>{\n" +
+    '  \"id\": \"my-app\",\n' +
+    '  \"title\": \"My App\",\n' +
+    '  \"description\": \"…\", \"tags\": [\"web-app\"],\n' +
+    '  \"source\": { \"root\": \"../my-app\",\n' +
+    '              \"files\": [\"index.html\", \"style.css\"] },\n' +
+    '  \"preview\": \"index.html\"\n' +
+    "}</pre>" +
+    "<p>Link-only entries just need <code>\"type\": \"link\"</code> and a <code>url</code>.</p>" +
+    "<h4>Then rebuild the library</h4>" +
+    "<p>Run <code>node build.js</code> (or <code>start.bat</code>) inside <code>design-library/</code>. Everything is packed into <code>designs.js</code>, so the site keeps working offline from a double-click and can be deployed to any static host as-is.</p>";
+
+  function openGuide() {
+    var bd = document.createElement("div");
+    bd.className = "modal-backdrop";
+    bd.innerHTML = '<div class="modal" role="dialog" aria-modal="true" aria-label="How to add a design">' +
+      '<div class="modal-head">' + I.folder + "<h3>Adding a design</h3>" +
+      '<button class="modal-close" aria-label="Close">' +
+      '<svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>' +
+      '<div class="modal-body">' + GUIDE_HTML + "</div></div>";
+    document.body.appendChild(bd);
+    function close() { bd.remove(); document.removeEventListener("keydown", onKey); }
+    function onKey(e) { if (e.key === "Escape") close(); }
+    bd.addEventListener("click", function (e) { if (e.target === bd) close(); });
+    $(".modal-close", bd).addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+  }
+
+  /* ---------- global chrome ---------- */
+
+  function updateCounts() {
+    $("#brandCount").textContent = DESIGNS.length + " items";
+    $("#footerStats").textContent = DESIGNS.length + " designs · " + allTags().length + " tags";
+  }
+
+  function initChrome() {
+    updateCounts();
+    $("#footerGenerated").textContent = LIB.generatedAt
+      ? "Library built " + fmtDate(LIB.generatedAt)
+      : "";
+
+    $("#searchInput").addEventListener("input", function (e) {
+      state.q = e.target.value;
+      if (!location.hash || location.hash === "#/" || /^#\/\??$/.test(location.hash)) {
+        renderGallery();
+      } else if (location.hash.indexOf("#/d/") === 0) {
+        location.hash = "#/"; // typing from a detail page jumps back to the filtered gallery
+      }
+    });
+
+    $("#addBtn").addEventListener("click", function () { openForm(null, null); });
+    $("#footerGuide").addEventListener("click", function (e) { e.preventDefault(); openGuide(); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "/" && document.activeElement !== $("#searchInput") &&
+          !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+        e.preventDefault();
+        $("#searchInput").focus();
+      }
+    });
+
+    setupDragDrop();
+    if (!storageOK) toast("Browser storage unavailable — added designs last only for this session", 4000);
+  }
+
+  /* ---------- boot ---------- */
+
+  initChrome();
+  window.addEventListener("hashchange", route);
+  route();
+})();
