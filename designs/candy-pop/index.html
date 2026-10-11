@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SugarLab — Candy Pop</title>
+<style>
+  :root { --pink: #ff6fb5; --yellow: #ffd93d; --green: #6bcb77; --blue: #4d96ff; --lilac: #c780fa; --ink: #3d2b3d; --bg: #fff6f9; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+
+  /* floating shapes */
+  .shape { position: fixed; border-radius: 50%; opacity: 0.5; animation: floaty 7s ease-in-out infinite alternate; pointer-events: none; z-index: 0; }
+  .s1 { width: 70px; height: 70px; background: var(--yellow); top: 12%; left: 6%; }
+  .s2 { width: 42px; height: 42px; background: var(--blue); top: 60%; left: 4%; animation-delay: -2s; }
+  .s3 { width: 56px; height: 56px; background: var(--green); top: 18%; right: 8%; animation-delay: -4s; }
+  .s4 { width: 34px; height: 34px; background: var(--pink); bottom: 12%; right: 12%; animation-delay: -1s; }
+  .s5 { width: 46px; height: 46px; background: var(--lilac); bottom: 30%; left: 10%; animation-delay: -3s; }
+  @keyframes floaty { to { transform: translateY(-26px) rotate(18deg); } }
+
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 22px; position: relative; z-index: 1; }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
+  .logo { font-size: 21px; font-weight: 800; }
+  .logo .candy { display: inline-block; animation: wiggle 2.2s ease-in-out infinite; }
+  @keyframes wiggle { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+  .cart { position: relative; background: var(--pink); color: #fff; border: 0; font: inherit; font-weight: 700; font-size: 13.5px; padding: 10px 18px; border-radius: 999px; cursor: pointer; box-shadow: 0 6px 0 #e2549b; transition: transform 0.1s; }
+  .cart:active { transform: translateY(4px); box-shadow: 0 2px 0 #e2549b; }
+  .cart .badge { position: absolute; top: -8px; right: -8px; background: var(--yellow); color: var(--ink); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12.5px; border: 2.5px solid #fff; }
+  .cart.bounce .badge { animation: bounce 0.5s; }
+  @keyframes bounce { 30% { transform: scale(1.5); } 60% { transform: scale(0.85); } }
+
+  header { text-align: center; padding: 46px 0 40px; }
+  h1 { font-size: clamp(38px, 7vw, 64px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+  h1 .c1 { color: var(--pink); } h1 .c2 { color: var(--blue); } h1 .c3 { color: var(--green); }
+  .sub { margin: 16px auto 28px; max-width: 460px; font-size: 16px; color: #7a5c72; }
+  .big-cta { font-size: 16px; font-weight: 800; padding: 15px 34px; border: 0; border-radius: 999px; background: var(--green); color: #fff; cursor: pointer; box-shadow: 0 7px 0 #4ea75a; transition: transform 0.1s; position: relative; z-index: 2; }
+  .big-cta:hover { animation: wiggle 0.5s ease-in-out infinite; }
+  .big-cta:active { transform: translateY(5px); box-shadow: 0 2px 0 #4ea75a; }
+
+  .products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 30px 0 50px; }
+  .prod { background: #fff; border-radius: 24px; padding: 24px 20px; text-align: center; box-shadow: 0 8px 24px rgba(190, 120, 160, 0.18); transition: transform 0.2s; }
+  .prod:hover { transform: rotate(-2deg) scale(1.04); }
+  .prod .face { width: 84px; height: 84px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; font-size: 40px; }
+  .f1 { background: #ffe3f1; } .f2 { background: #fff8d6; } .f3 { background: #e3f6e6; }
+  .prod h3 { font-size: 16px; margin-bottom: 4px; }
+  .prod .desc { font-size: 12.5px; color: #9a7f92; margin-bottom: 12px; }
+  .prod .price { font-weight: 800; font-size: 18px; color: var(--pink); margin-bottom: 12px; }
+  .add { border: 0; background: var(--blue); color: #fff; font: inherit; font-weight: 700; font-size: 12.5px; padding: 8px 18px; border-radius: 999px; cursor: pointer; box-shadow: 0 4px 0 #2f6fd1; }
+  .add:active { transform: translateY(3px); box-shadow: 0 1px 0 #2f6fd1; }
+
+  .funline { text-align: center; font-size: 14px; color: #9a7f92; padding-bottom: 60px; }
+  .confetti { position: fixed; width: 10px; height: 10px; top: -12px; z-index: 50; pointer-events: none; animation: fall 1.6s ease-in forwards; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); opacity: 0.6; } }
+
+  @media (max-width: 700px) { .products { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="shape s1"></div><div class="shape s2"></div><div class="shape s3"></div><div class="shape s4"></div><div class="shape s5"></div>
+
+  <div class="wrap">
+    <nav>
+      <div class="logo"><span class="candy">🍬</span> SugarLab</div>
+      <button class="cart" id="cartBtn">🛒 Cart <span class="badge" id="cartCount">0</span></button>
+    </nav>
+
+    <header>
+      <h1>Life is short.<br>Eat the <span class="c1">rain</span><span class="c2">bow</span><span class="c3">.</span></h1>
+      <p class="sub">Handmade candy with colours loud enough to hear. Cooked in small batches, shipped with love (and bubble wrap).</p>
+      <button class="big-cta" id="partyBtn">🎉 Grab a bag!</button>
+    </header>
+
+    <div class="products">
+      <div class="prod"><div class="face f1">🍭</div><h3>Unicorn Swirl</h3><div class="desc">strawberry + bubblegum swirl pop</div><div class="price">RM 6.90</div><button class="add">Add to cart</button></div>
+      <div class="prod"><div class="face f2">🐸</div><h3>Gummy Frogs</h3><div class="desc">sour lime frogs that stare back</div><div class="price">RM 8.50</div><button class="add">Add to cart</button></div>
+      <div class="prod"><div class="face f3">🫐</div><h3>Galaxy Berries</h3><div class="desc">blueberry clouds, zero gravity</div><div class="price">RM 7.20</div><button class="add">Add to cart</button></div>
+    </div>
+
+    <div class="funline">made with sugar, food colouring & questionable life choices 🍬</div>
+  </div>
+
+  <script>
+    // cart counter with bounce
+    let n = 0;
+    const badge = document.getElementById('cartCount'), cart = document.getElementById('cartBtn');
+    document.querySelectorAll('.add').forEach(b => b.addEventListener('click', () => {
+      n++;
+      badge.textContent = n;
+      cart.classList.remove('bounce');
+      void cart.offsetWidth;
+      cart.classList.add('bounce');
+      toast('Added to cart! 🍬');
+    }));
+    document.getElementById('cartBtn').addEventListener('click', () => toast(n ? 'You have ' + n + ' sweet(s) in the cart!' : 'Cart is empty — grab something!'));
+
+    // confetti burst
+    const colors = ['#ff6fb5', '#ffd93d', '#6bcb77', '#4d96ff', '#c780fa'];
+    function confetti(x, y) {
+      for (let i = 0; i < 40; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.background = colors[i % colors.length];
+        c.style.left = (x + (Math.random() - 0.5) * 120) + 'px';
+        c.style.top = y + 'px';
+        c.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        c.style.animationDelay = (Math.random() * 0.2) + 's';
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 2000);
+      }
+    }
+    document.getElementById('partyBtn').addEventListener('click', e => {
+      const r = e.target.getBoundingClientRect();
+      confetti(r.left + r.width / 2, r.top);
+      toast('YAAAY party time! 🎉');
+    });
+
+    // tiny toast
+    let tt;
+    function toast(m) {
+      let t = document.getElementById('toast');
+      if (!t) { t = document.createElement('div'); t.id = 'toast'; t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#3d2b3d;color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:600;z-index:60'; document.body.appendChild(t); }
+      t.textContent = m;
+      clearTimeout(tt);
+      tt = setTimeout(() => t.remove(), 1800);
+    }
+  </script>
+</body>
+</html>

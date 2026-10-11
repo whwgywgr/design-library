@@ -92,7 +92,7 @@ node build.js        # or just run start.bat
 
 ## Currently in the library
 
-**15 style showcases** — one self-contained reference page per popular design style, all
+**18 style showcases** — one self-contained reference page per popular design style, all
 pure HTML/CSS/JS with zero dependencies:
 
 | # | Design | Style |
@@ -112,6 +112,9 @@ pure HTML/CSS/JS with zero dependencies:
 | 13 | Flat Design — Material Era | app bar, hamburger drawer, ripple buttons, FAB, snackbar |
 | 14 | Neumorphism — Soft UI Player | extruded monochrome soft shadows, working player |
 | 15 | Neo-Brutalism — Modern Landing | cream + candy colour blocks, FAQ accordion |
+| 16 | Candy Pop — Playful Shop | pastel-bright candy colours, confetti, cart counter |
+| 17 | Gradient Mesh — Vivid SaaS | animated multi-colour mesh, gradient text |
+| 18 | Memphis Pop — Festival Poster | 80s geometric shapes, live countdown |
 
 An earlier sample collection (Emas landing page, LinkHub, design links, todo-list spec)
 still exists in the git history — see the initial commits if you ever want to restore it.
