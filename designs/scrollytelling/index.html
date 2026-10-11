@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORBIT — Scrollytelling</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: #0f1115; color: #e8eaf0; -webkit-font-smoothing: antialiased; }
+  .hero { text-align: center; padding: 90px 24px 60px; }
+  .hero .k { font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: #8a90a5; }
+  .hero h1 { font-size: clamp(30px, 5vw, 52px); letter-spacing: -0.02em; margin-top: 14px; }
+  .hero p { color: #8a90a5; margin-top: 12px; font-size: 15px; }
+  .hero .down { display: inline-block; margin-top: 26px; font-size: 22px; animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(8px); } }
+
+  .story { display: grid; grid-template-columns: 1fr 1fr; max-width: 1060px; margin: 0 auto; }
+  .visual { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; }
+  .blob { width: 240px; height: 240px; background: var(--c, #6366f1); transition: background 0.7s ease, border-radius 0.7s ease; display: grid; place-items: center; font-size: 56px; filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5)); animation: morph 6s ease-in-out infinite; }
+  @keyframes morph {
+    0%, 100% { border-radius: 58% 42% 55% 45% / 52% 56% 44% 48%; }
+    50% { border-radius: 45% 55% 48% 52% / 58% 44% 56% 42%; }
+  }
+  .vcap { text-align: center; }
+  .vnum { font-size: 15px; letter-spacing: 0.3em; color: var(--c, #6366f1); font-weight: 700; transition: color 0.7s; }
+  .vtitle { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; margin-top: 6px; }
+
+  .steps { display: grid; gap: 40vh; padding: 40vh 30px 30vh; }
+  .step { background: #171a21; border: 1px solid #232733; border-radius: 18px; padding: 30px; max-width: 400px; opacity: 0.25; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.5s; }
+  .step.on { opacity: 1; transform: none; border-color: var(--c); }
+  .step .n { font-size: 12px; letter-spacing: 0.25em; color: var(--c); font-weight: 700; }
+  .step h2 { font-size: 24px; margin: 10px 0; letter-spacing: -0.01em; }
+  .step p { color: #9aa0b4; font-size: 15px; line-height: 1.65; }
+  .step .tag { display: inline-block; margin-top: 16px; font-size: 11.5px; font-weight: 600; color: var(--c); background: rgba(255, 255, 255, 0.05); border: 1px solid var(--c); border-radius: 999px; padding: 4px 12px; }
+
+  .end { text-align: center; padding: 120px 24px 140px; }
+  .end h2 { font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; }
+  .end p { color: #8a90a5; margin-top: 10px; }
+  .end .btn { display: inline-block; margin-top: 26px; background: #e8eaf0; color: #0f1115; font-weight: 700; text-decoration: none; padding: 12px 26px; border-radius: 999px; }
+
+  @media (max-width: 780px) { .story { grid-template-columns: 1fr; } .visual { display: none; } .steps { gap: 12vh; padding-top: 8vh; } .step { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div class="k">A launch story · scroll to read</div>
+    <h1>From a napkin sketch<br>to a million users</h1>
+    <p>Four chapters. One sticky little planet that changes as you go.</p>
+    <span class="down">↓</span>
+  </div>
+
+  <div class="story" id="story">
+    <div class="visual" id="visual">
+      <div class="blob" id="blob">✳</div>
+      <div class="vcap">
+        <div class="vnum" id="vnum">CHAPTER 1</div>
+        <div class="vtitle" id="vtitle">The Idea</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step on" data-c="#6366f1" data-n="CHAPTER 1" data-t="The Idea" data-g="✳">
+        <div class="n">CHAPTER 1</div>
+        <h2>The Idea</h2>
+        <p>Every product starts as a complaint. Ours was: why does tracking a team's week take eleven tabs and a spreadsheet nobody trusts?</p>
+        <span class="tag">2 friends · 1 whiteboard</span>
+      </div>
+      <div class="step" data-c="#06b6d4" data-n="CHAPTER 2" data-t="The Build" data-g="◆">
+        <div class="n">CHAPTER 2</div>
+        <h2>The Build</h2>
+        <p>Ninety days of prototypes. We shipped the boring parts first — sync, offline, keyboard shortcuts — and let the polish accumulate like interest.</p>
+        <span class="tag">v0.1 → v0.9 in one quarter</span>
+      </div>
+      <div class="step" data-c="#f59e0b" data-n="CHAPTER 3" data-t="The Launch" data-g="▲">
+        <div class="n">CHAPTER 3</div>
+        <h2>The Launch</h2>
+        <p>We posted it on a Tuesday morning with a two-sentence demo. By dinner it had 40,000 visitors and one very warm server.</p>
+        <span class="tag">#1 product of the day</span>
+      </div>
+      <div class="step" data-c="#22c55e" data-n="CHAPTER 4" data-t="The Growth" data-g="●">
+        <div class="n">CHAPTER 4</div>
+        <h2>The Growth</h2>
+        <p>Growth turned out to be the quiet part: answer every email, ship every Tuesday, and never charge for the thing that makes people love you.</p>
+        <span class="tag">1,000,000 users and counting</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="end">
+    <h2>Your chapter goes here.</h2>
+    <p>Swap the copy, keep the machinery — four steps, one sticky visual, endless stories.</p>
+    <a class="btn" href="#">Start your story</a>
+  </div>
+
+  <script>
+    const steps = document.querySelectorAll('.step');
+    const blob = document.getElementById('blob');
+    const vnum = document.getElementById('vnum');
+    const vtitle = document.getElementById('vtitle');
+    const visual = document.getElementById('visual');
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => {
+        if (!e.isIntersecting) return;
+        steps.forEach(s => s.classList.remove('on'));
+        e.target.classList.add('on');
+        const c = e.target.dataset.c;
+        visual.style.setProperty('--c', c);
+        blob.textContent = e.target.dataset.g;
+        vnum.textContent = e.target.dataset.n;
+        vtitle.textContent = e.target.dataset.t;
+      });
+    }, { rootMargin: '-40% 0px -40% 0px' });
+    steps.forEach(s => io.observe(s));
+  </script>
+</body>
+</html>

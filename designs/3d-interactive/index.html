@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUBE — 3D Interactive</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: radial-gradient(1000px 600px at 50% 20%, #1b1d26, #0e0f13 70%); color: #e8eaf2; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; user-select: none; }
+  .hud { position: fixed; top: 18px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 22px; font-family: Consolas, ui-monospace, monospace; font-size: 11.5px; color: #7a8095; letter-spacing: 0.12em; }
+  .hud b { color: #e8eaf2; }
+  h1 { font-size: 15px; letter-spacing: 0.35em; text-transform: uppercase; color: #9aa1b5; margin-bottom: 6px; }
+  .hint { font-size: 12.5px; color: #5d647a; margin-bottom: 26px; }
+
+  .scene { width: 240px; height: 240px; perspective: 900px; cursor: grab; touch-action: none; }
+  .scene:active { cursor: grabbing; }
+  .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: rotateX(var(--rx, -18deg)) rotateY(var(--ry, 24deg)); }
+  .face { position: absolute; inset: 0; display: grid; place-items: center; font-size: 64px; font-weight: 800; color: rgba(255, 255, 255, 0.92); border: 1.5px solid rgba(255, 255, 255, 0.25); background: linear-gradient(135deg, var(--face-a), var(--face-b)); box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.25); }
+  .f1 { transform: translateZ(120px); }
+  .f2 { transform: rotateY(180deg) translateZ(120px); }
+  .f3 { transform: rotateY(90deg) translateZ(120px); }
+  .f4 { transform: rotateY(-90deg) translateZ(120px); }
+  .f5 { transform: rotateX(90deg) translateZ(120px); }
+  .f6 { transform: rotateX(-90deg) translateZ(120px); }
+
+  :root { --face-a: #2563eb; --face-b: #22d3ee; }
+  body.violet { --face-a: #d946ef; --face-b: #6366f1; }
+  body.sunset { --face-a: #f97316; --face-b: #facc15; }
+  body.mono { --face-a: #3f3f46; --face-b: #18181b; }
+
+  .controls { margin-top: 34px; display: flex; gap: 10px; }
+  .controls button { font: inherit; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #c9cdda; background: #181a22; border: 1px solid #2c2f3c; border-radius: 999px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; }
+  .controls button:hover { border-color: #4c5164; color: #fff; }
+  .controls button.active { background: #e8eaf2; color: #12131a; border-color: #e8eaf2; }
+  .readout { margin-top: 20px; font-family: Consolas, ui-monospace, monospace; font-size: 12px; color: #5d647a; }
+</style>
+</head>
+<body>
+  <div class="hud"><span>NEXUS/SCENE <b>01</b></span><span>WEBGL COUNT: <b>0</b> · CSS ONLY</span></div>
+  <h1>The Cube</h1>
+  <div class="hint">Drag to rotate · release to spin</div>
+
+  <div class="scene" id="scene">
+    <div class="cube" id="cube">
+      <div class="face f1">◆</div>
+      <div class="face f2">✦</div>
+      <div class="face f3">▲</div>
+      <div class="face f4">●</div>
+      <div class="face f5">■</div>
+      <div class="face f6">✺</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="active" data-theme="">Ocean</button>
+    <button data-theme="violet">Violet</button>
+    <button data-theme="sunset">Sunset</button>
+    <button data-theme="mono">Mono</button>
+  </div>
+  <div class="readout" id="readout">rx -18.0° · ry 24.0° · idle-spin on</div>
+
+  <script>
+    const scene = document.getElementById('scene');
+    const cube = document.getElementById('cube');
+    const readout = document.getElementById('readout');
+    let rx = -18, ry = 24, vx = 0, vy = 0.4, dragging = false, px = 0, py = 0, idleTimer;
+
+    scene.addEventListener('pointerdown', e => {
+      dragging = true; px = e.clientX; py = e.clientY;
+      vx = vy = 0; clearTimeout(idleTimer);
+      scene.setPointerCapture(e.pointerId);
+    });
+    scene.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const dx = e.clientX - px, dy = e.clientY - py;
+      ry += dx * 0.4; rx -= dy * 0.4;
+      vy = dx * 0.4; vx = -dy * 0.4;
+      px = e.clientX; py = e.clientY;
+    });
+    addEventListener('pointerup', () => {
+      dragging = false;
+      idleTimer = setTimeout(() => { vy = Math.max(0.25, Math.abs(vy)); }, 2000);
+    });
+
+    (function loop() {
+      if (!dragging) {
+        ry += vy; rx += vx;
+        vx *= 0.95; vy *= 0.95;
+        if (Math.abs(vy) < 0.25) vy += (0.3 - vy) * 0.02; // ease into idle spin
+        rx = Math.max(-80, Math.min(80, rx));
+      }
+      cube.style.setProperty('--rx', rx + 'deg');
+      cube.style.setProperty('--ry', ry + 'deg');
+      readout.textContent = 'rx ' + rx.toFixed(1) + '° · ry ' + ry.toFixed(1) + '° · ' + (dragging ? 'dragging' : 'inertia');
+      requestAnimationFrame(loop);
+    })();
+
+    document.querySelectorAll('.controls button').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.controls button').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        document.body.className = b.dataset.theme;
+      });
+    });
+  </script>
+</body>
+</html>

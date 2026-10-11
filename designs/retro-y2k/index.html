@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>★ ~ WeLcOmE 2 My WeBsItE ~ ★</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #008080; font-family: Verdana, sans-serif; padding: 26px 14px; display: flex; justify-content: center; align-items: flex-start; }
+
+  /* fake browser window */
+  .window { width: 100%; max-width: 760px; background: #c0c0c0; border: 2px outset #fff; box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4); }
+  .titlebar { background: linear-gradient(90deg, #000080, #1084d0); color: #fff; font-weight: bold; font-size: 12.5px; padding: 4px 6px; display: flex; justify-content: space-between; align-items: center; }
+  .titlebar .btns button { width: 18px; height: 16px; margin-left: 2px; background: #c0c0c0; border: 2px outset #fff; font-size: 9px; cursor: pointer; font-family: Tahoma, sans-serif; }
+  .menubar { background: #c0c0c0; font-size: 11.5px; padding: 3px 8px; border-bottom: 1px solid #808080; }
+  .menubar span { padding: 1px 7px; cursor: default; }
+  .menubar span:hover { background: #000080; color: #fff; }
+  .addr { background: #c0c0c0; font-size: 11px; padding: 3px 8px 6px; display: flex; gap: 6px; align-items: center; border-bottom: 2px inset #fff; }
+  .addr input { flex: 1; border: 2px inset #fff; font-family: "Courier New", monospace; font-size: 11.5px; padding: 2px 5px; background: #fff; }
+
+  /* the "webpage" inside */
+  .page { background: #000033 url('') ; background-image: radial-gradient(#fff 1px, transparent 1.4px), radial-gradient(#8fa8ff 1px, transparent 1.4px); background-size: 90px 90px, 55px 55px; background-position: 0 0, 27px 31px; padding: 24px 18px; text-align: center; }
+
+  .wordart { font-family: "Comic Sans MS", "Comic Sans", cursive; font-size: clamp(30px, 7vw, 52px); font-weight: bold; background: linear-gradient(180deg, #ff00ff, #ffff00, #00ff00, #00ffff);
+    -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.25); text-shadow: 3px 3px 0 #ff00ff44; transform: rotate(-2deg); margin: 6px 0 2px; }
+  .subtitle { color: #ffff00; font-family: "Comic Sans MS", cursive; font-size: 14px; }
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .marquee { background: #000; border: 2px ridge #ff00ff; color: #00ff00; font-family: "Comic Sans MS", cursive; font-size: 13px; overflow: hidden; margin: 16px 0; }
+  .marquee div { white-space: nowrap; display: inline-block; padding: 6px 0; animation: scrollx 14s linear infinite; }
+  @keyframes scrollx { to { transform: translateX(-50%); } }
+
+  table.main { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  table.main td { border: 3px ridge #8fa8ff; padding: 14px; vertical-align: top; background: rgba(0, 0, 128, 0.55); }
+  td.left { width: 42%; }
+  h2 { color: #00ffff; font-family: "Comic Sans MS", cursive; font-size: 16px; margin: 0 0 8px; text-shadow: 1px 1px 0 #000; }
+  p, li { color: #fff; font-size: 12.5px; line-height: 1.7; }
+  ul { list-style: none; padding: 0; margin: 0; text-align: left; }
+  li::before { content: "★ "; color: #ffff00; }
+  .counter { display: inline-block; background: #000; border: 2px inset #fff; padding: 4px 10px; font-family: "Courier New", monospace; font-size: 20px; letter-spacing: 4px; color: #00ff00; margin: 8px 0; }
+  .label { color: #ff69b4; font-weight: bold; font-size: 12px; font-family: "Comic Sans MS", cursive; }
+  .btny2k { font-family: "Comic Sans MS", cursive; font-size: 12.5px; background: linear-gradient(180deg, #ffff9c, #ffd400); border: 2px outset #fff; padding: 6px 14px; cursor: pointer; margin-top: 8px; }
+  .btny2k:active { border-style: inset; }
+
+  .badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .badge { font-size: 10px; font-weight: bold; padding: 4px 8px; border: 2px outset #fff; font-family: Tahoma, sans-serif; }
+  .b-html { background: #000080; color: #fff; } .b-800 { background: #000; color: #0f0; } .b-new { background: #ff0000; color: #ffff00; animation: blink 0.8s steps(1) infinite; }
+  footer { margin-top: 14px; color: #8fa8ff; font-size: 11px; }
+  a { color: #00ffff; }
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar"><span>★ My_Cool_Site.html — Microsooft Internet Exploder ★</span><span class="btns"><button>_</button><button>□</button><button>✕</button></span></div>
+    <div class="menubar"><span>File</span><span>Edit</span><span>View</span><span>Favorites</span><span>Help</span></div>
+    <div class="addr">Alamat: <input readonly value="http://www.geocities.com/my_cool_site/index.html"></div>
+
+    <div class="page">
+      <div class="wordart">~ WeLcOmE 2 My SiTe ~</div>
+      <div class="subtitle">✦ under construction since 2002 <span class="blink">▌</span> ✦</div>
+
+      <div class="marquee"><div>*** HALO SEMUA!!! selamat datang ke laman web paling best di malaysia *** jangan lupa sign guestbook *** best viewed in 800x600 *** &nbsp;</div></div>
+
+      <table class="main">
+        <tr>
+          <td class="left">
+            <h2>☺ About Me</h2>
+            <ul>
+              <li>Nama: <b>Aku</b></li>
+              <li>Hobi: buat website, main game, m Milo ais</li>
+              <li>Band kegemaran: Sum 41, Linkin Park</li>
+              <li>HP: Nokia 3310 (tak penah rosak)</li>
+            </ul>
+            <p style="margin-top:10px"><span class="label">~ Visitors ~</span><br>
+            <span class="counter" id="hits">000000</span><br>
+            <button class="btny2k" onclick="alert('TERIMA KASIH! you are visitor no. ' + (4200 + Math.floor(Math.random() * 99)) + ' !!!')">✍ Sign my guestbook!</button></p>
+          </td>
+          <td>
+            <h2>✌ What's New</h2>
+            <ul>
+              <li>[12/10] tambah section game baru!!</li>
+              <li>[03/10] background stars sudah ditukar</li>
+              <li>[28/09] guestbook dah berfungsi (akhirnye)</li>
+              <li>[15/09] website ini dicipta 🎉</li>
+            </ul>
+            <p style="margin-top:10px"><span class="blink" style="color:#ff00ff;font-weight:bold">★ NEW!! ★</span> <span style="color:#ffff00">MP3 of the week:</span> <a href="#" onclick="return false">song_final_FINAL_v2.mp3</a> (3.8 MB — 45 minit untuk download dgn 56k 😅)</p>
+          </td>
+        </tr>
+      </table>
+
+      <div class="badges">
+        <span class="badge b-html">VALID HTML 4.01</span>
+        <span class="badge b-800">BEST VIEWED 800×600</span>
+        <span class="badge" style="background:#008080;color:#fff">NETSCAPE NOW!</span>
+        <span class="badge b-new">NEW!</span>
+      </div>
+      <footer>© 2002 my_cool_site · ← <a href="#" onclick="return false">prev site</a> | <a href="#" onclick="return false">random</a> | <a href="#" onclick="return false">next site</a> → · part of the KiTzWeB RiNg</footer>
+    </div>
+  </div>
+
+  <script>
+    // "hit counter" — persists per browser, like the good old days
+    const el = document.getElementById('hits');
+    let n = parseInt(localStorage.getItem('y2k_hits') || '4199', 10) + 1;
+    localStorage.setItem('y2k_hits', n);
+    el.textContent = String(n).padStart(6, '0');
+  </script>
+</body>
+</html>

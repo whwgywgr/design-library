@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lumen — Glassmorphism</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; background: linear-gradient(130deg, #4f46e5, #7c3aed 55%, #db2777); color: #fff; overflow-x: hidden; display: flex; align-items: center; justify-content: center; padding: 40px 20px; position: relative; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.55; animation: drift 16s ease-in-out infinite alternate; }
+  .b1 { width: 420px; height: 420px; background: #22d3ee; top: -80px; left: -60px; }
+  .b2 { width: 380px; height: 380px; background: #f472b6; bottom: -100px; right: -60px; animation-delay: -5s; }
+  .b3 { width: 300px; height: 300px; background: #a3e635; top: 40%; left: 55%; animation-delay: -10s; }
+  @keyframes drift { to { transform: translate(70px, 40px) scale(1.15); } }
+
+  .stage { position: relative; width: 100%; max-width: 860px; display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; z-index: 1; }
+  .glass { background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.35); border-radius: 22px; backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); box-shadow: 0 24px 60px rgba(17, 12, 46, 0.35); padding: 26px; }
+  .glass-sm { padding: 18px 20px; }
+
+  .player { transition: transform 0.15s ease; transform-style: preserve-3d; }
+  .cover { width: 100%; aspect-ratio: 16 / 9; border-radius: 16px; background: linear-gradient(135deg, rgba(255,255,255,0.35), rgba(255,255,255,0.08)); border: 1px solid rgba(255, 255, 255, 0.3); display: grid; place-items: center; font-size: 44px; }
+  .t { font-size: 20px; font-weight: 700; margin-top: 16px; }
+  .a { font-size: 13px; opacity: 0.75; }
+  .bar { height: 4px; border-radius: 999px; background: rgba(255, 255, 255, 0.25); margin: 18px 0 8px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 38%; background: #fff; border-radius: 999px; }
+  .times { display: flex; justify-content: space-between; font-size: 11px; opacity: 0.7; }
+  .eq { display: flex; align-items: flex-end; gap: 3px; height: 26px; margin-top: 16px; }
+  .eq i { width: 5px; background: rgba(255, 255, 255, 0.8); border-radius: 2px; animation: eq 0.9s ease-in-out infinite; }
+  .eq i:nth-child(2) { animation-delay: 0.15s; } .eq i:nth-child(3) { animation-delay: 0.3s; }
+  .eq i:nth-child(4) { animation-delay: 0.45s; } .eq i:nth-child(5) { animation-delay: 0.6s; }
+  @keyframes eq { 0%, 100% { height: 8px; } 50% { height: 26px; } }
+
+  .col { display: grid; gap: 22px; align-content: start; }
+  .stat .k { font-size: 12px; text-transform: uppercase; letter-spacing: 0.14em; opacity: 0.65; }
+  .stat .v { font-size: 30px; font-weight: 750; letter-spacing: -0.02em; margin-top: 4px; }
+  .stat .d { font-size: 12.5px; opacity: 0.7; }
+  .stat .d b { color: #a7f3d0; }
+
+  .dock { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; }
+  .dock button { width: 42px; height: 42px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 17px; cursor: pointer; transition: all 0.2s; }
+  .dock button:hover { background: rgba(255, 255, 255, 0.28); transform: translateY(-4px); }
+
+  .chip { display: flex; align-items: center; gap: 12px; }
+  .chip .ic { width: 40px; height: 40px; border-radius: 12px; background: rgba(255, 255, 255, 0.16); display: grid; place-items: center; font-size: 18px; flex: none; }
+  .chip .tx { font-size: 13.5px; }
+  .chip .tx small { display: block; opacity: 0.65; font-size: 11.5px; }
+
+  @media (max-width: 780px) { .stage { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+  <div class="stage">
+    <div class="glass player" id="tilt">
+      <div class="cover">🎧</div>
+      <div class="t">Midnight in Putrajaya</div>
+      <div class="a">Lumen Collective · Synth Sessions, Vol. 2</div>
+      <div class="bar"><i></i></div>
+      <div class="times"><span>1:42</span><span>4:35</span></div>
+      <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="dock" style="padding:14px 0 0; border:0; background:none; box-shadow:none; backdrop-filter:none;">
+        <button>⏮</button><button style="width:54px;height:54px;background:rgba(255,255,255,0.3)">▶</button><button>⏭</button>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="glass glass-sm stat">
+        <div class="k">Listeners now</div>
+        <div class="v">12,408</div>
+        <div class="d"><b>▲ 18%</b> in the last hour</div>
+      </div>
+      <div class="glass glass-sm chip">
+        <div class="ic">⬇</div>
+        <div class="tx">Offline mix ready<small>38 tracks · 2.1 GB</small></div>
+      </div>
+      <div class="glass glass-sm chip">
+        <div class="ic">✦</div>
+        <div class="tx">Weekly discovery<small>Refreshes Friday 6pm</small></div>
+      </div>
+      <div class="glass dock">
+        <button>🏠</button><button>🔍</button><button>❤️</button><button>⚙️</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // gentle pointer tilt on the main glass card
+    const card = document.getElementById('tilt');
+    addEventListener('pointermove', e => {
+      const r = card.getBoundingClientRect();
+      const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+      const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+      card.style.transform = `rotateY(${dx * 6}deg) rotateX(${-dy * 6}deg)`;
+    });
+    addEventListener('pointerleave', () => card.style.transform = '');
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quill — Editorial</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, "Times New Roman", serif; background: #fbfaf7; color: #1a1815; line-height: 1.7; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px; }
+
+  #progress { position: fixed; top: 0; left: 0; height: 3px; width: 0; background: #8a2b1d; z-index: 10; }
+
+  .topline { font-family: Georgia, serif; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6e675e; display: flex; justify-content: space-between; padding: 14px 0 8px; border-bottom: 1px solid #d8d2c7; }
+  .masthead { text-align: center; padding: 26px 0 18px; border-bottom: 4px double #1a1815; }
+  .masthead h1 { font-size: clamp(44px, 8vw, 84px); letter-spacing: 0.02em; font-weight: 700; }
+  .masthead p { font-style: italic; color: #6e675e; font-size: 14px; margin-top: 2px; }
+  .sections { display: flex; justify-content: center; gap: 26px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 10px 0; border-bottom: 1px solid #d8d2c7; color: #1a1815; }
+  .sections span:hover { color: #8a2b1d; cursor: pointer; }
+
+  article { padding: 44px 0 20px; }
+  .kicker { color: #8a2b1d; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; }
+  .headline { font-size: clamp(34px, 5.6vw, 62px); line-height: 1.06; letter-spacing: -0.015em; margin: 14px 0 16px; font-weight: 700; }
+  .standfirst { font-style: italic; font-size: 19px; color: #4b453d; max-width: 720px; }
+  .byline { display: flex; gap: 14px; align-items: baseline; font-size: 12.5px; color: #6e675e; margin: 22px 0; padding: 12px 0; border-top: 1px solid #d8d2c7; border-bottom: 1px solid #d8d2c7; }
+  .byline b { color: #1a1815; letter-spacing: 0.04em; text-transform: uppercase; font-size: 11.5px; }
+  .cols { column-count: 2; column-gap: 44px; column-rule: 1px solid #e4ded2; font-size: 16.5px; text-align: justify; hyphens: auto; }
+  .cols p { margin-bottom: 1em; }
+  .cols .dropcap::first-letter { font-size: 74px; float: left; line-height: 0.78; padding: 6px 10px 0 0; font-weight: 700; color: #8a2b1d; }
+  .pull { break-inside: avoid; margin: 26px 0; padding: 22px 0; border-top: 3px solid #1a1815; border-bottom: 3px solid #1a1815; font-size: 25px; line-height: 1.35; font-style: italic; text-align: center; }
+
+  .related { border-top: 4px double #1a1815; margin-top: 30px; padding: 30px 0 46px; }
+  .related h2 { font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+  .story { border-top: 1px solid #1a1815; padding-top: 12px; }
+  .story .cat { color: #8a2b1d; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; }
+  .story h3 { font-size: 21px; line-height: 1.2; margin: 8px 0; font-weight: 700; }
+  .story p { font-size: 14px; color: #4b453d; }
+  .story:hover h3 { color: #8a2b1d; cursor: pointer; }
+
+  footer { border-top: 4px double #1a1815; padding: 18px 0 30px; font-size: 12px; color: #6e675e; display: flex; justify-content: space-between; font-style: italic; }
+
+  @media (max-width: 720px) { .cols { column-count: 1; } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div id="progress"></div>
+  <div class="wrap">
+    <div class="topline"><span>Sunday Edition</span><span>No. 247</span><span>RM 4.50</span></div>
+    <div class="masthead">
+      <h1>The Quill</h1>
+      <p>Notes on design, technology & the people between them — est. 1998</p>
+    </div>
+    <div class="sections"><span>World</span><span>Technology</span><span>Design</span><span>Culture</span><span>Opinion</span></div>
+
+    <article>
+      <div class="kicker">Special Report · Typography</div>
+      <h2 class="headline">The quiet return of the newspaper web</h2>
+      <p class="standfirst">After a decade of chasing app-store gloss, a new generation of publications is rediscovering what print always knew: rules, columns and confidence.</p>
+      <div class="byline"><b>By Aminah Rosli</b><span>Senior Correspondent</span><span>Kuala Lumpur · 14 min read</span></div>
+      <div class="cols">
+        <p class="dropcap">The most radical thing a website can do in 2026 is look like it was typeset by someone who read a book. No infinite scroll, no pop-ups begging for an email address — just a masthead, a rule, and words that know where they belong.</p>
+        <p>The movement began quietly, in the archives. Designers started scanning broadsheets from the seventies and asking an uncomfortable question: why did we abandon the column? The answer, it turns out, was never typography. It was fear — fear that readers would leave, that whitespace was wasted, that a serif font read as "old".</p>
+        <div class="pull">“A page with rules and columns is a promise: someone decided what matters here.”</div>
+        <p>The economics are changing too. Newsletters taught publishers that audience is a relationship, not a metric. And a relationship, like a good column, has a fixed measure — it respects the reader's eye and their time.</p>
+        <p>Whether the newspaper web survives its second childhood is beside the point. For now, the drop caps are back, the rules are heavy, and reading on a screen feels, once again, like reading.</p>
+      </div>
+    </article>
+
+    <div class="related">
+      <h2>More from this issue</h2>
+      <div class="grid">
+        <div class="story"><div class="cat">Technology</div><h3>Inside the workshop where old keyboards never die</h3><p>A KL artisan has restored 4,000 mechanical keyboards — and explains what silicon forgot.</p></div>
+        <div class="story"><div class="cat">Design</div><h3>Why every city suddenly looks the same at night</h3><p>An investigation into the typography of wayfinding, and the fonts that own our streets.</p></div>
+        <div class="story"><div class="cat">Culture</div><h3>The last letterpress operator of Petaling Street</h3><p>Three generations, one Heidelberg press, and a waiting list that never gets shorter.</p></div>
+      </div>
+    </div>
+
+    <footer><span>© 2026 The Quill Publishing</span><span>Set in Georgia · Printed on pixels</span></footer>
+  </div>
+
+  <script>
+    const bar = document.getElementById('progress');
+    addEventListener('scroll', () => {
+      const h = document.documentElement;
+      bar.style.width = (h.scrollTop / (h.scrollHeight - h.clientHeight) * 100) + '%';
+    }, { passive: true });
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Minimalist SaaS</title>
+<style>
+  :root { --ink: #141414; --mut: #8a8a8a; --line: #e8e8e6; --bg: #fdfdfc; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .logo { font-weight: 700; font-size: 17px; letter-spacing: -0.02em; }
+  .logo span { color: var(--mut); }
+  .links { display: flex; gap: 26px; font-size: 13.5px; color: var(--mut); }
+  .links a { color: inherit; text-decoration: none; }
+  .links a:hover { color: var(--ink); }
+  .btn { background: var(--ink); color: #fff; border: 0; cursor: pointer; font: inherit; font-size: 13.5px; font-weight: 600; padding: 9px 18px; border-radius: 8px; }
+  header { padding: 110px 0 90px; }
+  .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mut); margin-bottom: 18px; }
+  h1 { font-size: clamp(38px, 6vw, 58px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 750; }
+  h1 em { font-style: normal; color: var(--mut); }
+  .sub { margin: 22px 0 34px; font-size: 17px; color: var(--mut); max-width: 480px; }
+  .signup { display: flex; gap: 10px; max-width: 420px; }
+  .signup input { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 14px; outline: none; }
+  .signup input:focus { border-color: #bbb; }
+  .note { margin-top: 12px; font-size: 12px; color: var(--mut); }
+  section { padding: 70px 0; border-top: 1px solid var(--line); }
+  .feat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 38px; }
+  .feat .n { font-size: 12px; color: var(--mut); border-top: 2px solid var(--ink); padding-top: 12px; font-weight: 600; }
+  .feat h3 { font-size: 15px; margin: 14px 0 8px; letter-spacing: -0.01em; }
+  .feat p { font-size: 13.5px; color: var(--mut); }
+  blockquote { font-size: clamp(22px, 3.4vw, 30px); letter-spacing: -0.02em; line-height: 1.35; font-weight: 600; }
+  .who { margin-top: 18px; font-size: 13px; color: var(--mut); }
+  footer { border-top: 1px solid var(--line); }
+  footer .wrap { padding: 26px 24px; display: flex; justify-content: space-between; font-size: 12.5px; color: var(--mut); }
+  @media (max-width: 700px) { .feat { grid-template-columns: 1fr; } .links { display: none; } }
+  .rv { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .rv.on { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <div class="logo">focus<span>.</span></div>
+      <div class="links"><a href="#">Product</a><a href="#">Pricing</a><a href="#">Docs</a><a href="#">Blog</a></div>
+      <button class="btn">Get started</button>
+    </nav>
+
+    <header>
+      <div class="eyebrow rv">Note-taking for makers</div>
+      <h1 class="rv">Clear notes,<br><em>clearer thinking.</em></h1>
+      <p class="sub rv">A calm workspace that gets out of your way. Capture ideas in seconds and find them again in one keystroke.</p>
+      <form class="signup rv" id="form">
+        <input type="email" placeholder="you@work.com" required>
+        <button class="btn">Start free</button>
+      </form>
+      <div class="note rv">Free 14-day trial · No credit card required</div>
+    </header>
+
+    <section>
+      <div class="feat">
+        <div class="rv"><div class="n">01</div><h3>Instant capture</h3><p>A global hotkey opens a quick note from anywhere, so nothing ever breaks your flow.</p></div>
+        <div class="rv"><div class="n">02</div><h3>Effortless order</h3><p>Notes link to each other and organise themselves as your thinking grows.</p></div>
+        <div class="rv"><div class="n">03</div><h3>Private by default</h3><p>End-to-end encrypted. Your notes are yours — export everything, anytime.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <blockquote class="rv">“The first notes app that feels quieter than my own head. I open it twenty times a day and it never asks for attention.”</blockquote>
+      <div class="who rv">— A product designer in Kuala Lumpur</div>
+    </section>
+  </div>
+
+  <footer><div class="wrap"><span>© 2026 Focus</span><span>Made with restraint</span></div></footer>
+
+  <script>
+    const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('on')), { threshold: 0.15 });
+    document.querySelectorAll('.rv').forEach((el, i) => { el.style.transitionDelay = (i % 4) * 60 + 'ms'; io.observe(el); });
+    document.getElementById('form').addEventListener('submit', e => {
+      e.preventDefault();
+      const b = e.target.querySelector('button');
+      b.textContent = 'Check your inbox ✓';
+      b.disabled = true;
+    });
+  </script>
+</body>
+</html>

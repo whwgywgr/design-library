@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAW STUDIO — Brutalist</title>
+<style>
+  :root { --ink: #111; --paper: #fffef5; --acid: #ffd400; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  ::selection { background: var(--acid); color: var(--ink); }
+  body { font-family: "Arial Black", "Segoe UI", Arial, sans-serif; background: var(--paper); color: var(--ink); }
+  a { color: inherit; }
+
+  .marquee { background: var(--ink); color: var(--paper); overflow: hidden; border-bottom: 3px solid var(--ink); }
+  .marquee-track { display: inline-flex; white-space: nowrap; padding: 10px 0; font-size: 13px; letter-spacing: 0.08em; animation: slide 18s linear infinite; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 20px; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; border-bottom: 3px solid var(--ink); }
+  .brand { font-size: 20px; text-decoration: none; }
+  .brand b { background: var(--acid); padding: 2px 8px; border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); }
+  nav .menu { display: flex; gap: 14px; font-size: 12px; }
+  nav .menu a { text-decoration: none; padding: 6px 10px; border: 3px solid var(--ink); background: #fff; box-shadow: 4px 4px 0 var(--ink); }
+  nav .menu a:hover { background: var(--ink); color: var(--acid); box-shadow: none; transform: translate(4px, 4px); }
+
+  header { padding: 70px 0 60px; }
+  h1 { font-size: clamp(44px, 8.5vw, 96px); line-height: 0.95; text-transform: uppercase; letter-spacing: -0.02em; }
+  h1 .fill { color: var(--paper); -webkit-text-stroke: 3px var(--ink); }
+  .tag { display: inline-block; margin-top: 26px; font-size: 13px; text-transform: uppercase; background: var(--acid); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); padding: 10px 16px; }
+
+  .works { display: grid; grid-template-columns: repeat(3, 1fr); border: 3px solid var(--ink); border-right: 0; }
+  .work { border-right: 3px solid var(--ink); padding: 26px 20px 30px; text-decoration: none; display: block; min-height: 190px; }
+  .work:hover { background: var(--ink); color: var(--acid); }
+  .work .idx { font-size: 12px; opacity: 0.7; }
+  .work h3 { font-size: 22px; text-transform: uppercase; margin: 46px 0 6px; letter-spacing: -0.01em; }
+  .work p { font-family: "Segoe UI", sans-serif; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+
+  .manifesto { padding: 60px 0; }
+  .row { display: flex; gap: 22px; align-items: baseline; padding: 16px 0; border-bottom: 3px solid var(--ink); font-size: clamp(18px, 3vw, 28px); text-transform: uppercase; }
+  .row .no { font-size: 13px; background: var(--acid); border: 3px solid var(--ink); padding: 2px 8px; flex: none; }
+  .row:hover { background: var(--acid); }
+
+  footer { border-top: 3px solid var(--ink); margin-top: 20px; }
+  footer .big { font-size: clamp(50px, 12vw, 150px); text-transform: uppercase; line-height: 1; padding: 30px 0 10px; letter-spacing: -0.03em; }
+  footer .meta { display: flex; justify-content: space-between; padding: 0 0 26px; font-size: 12px; text-transform: uppercase; }
+
+  @media (max-width: 760px) { .works { grid-template-columns: 1fr; border-right: 3px solid var(--ink); } .work { border-right: 0; border-bottom: 3px solid var(--ink); } }
+</style>
+</head>
+<body>
+  <div class="marquee"><div class="marquee-track"><span>★ RAW STUDIO ★ WE MAKE LOUD WEBSITES ★ NO TEMPLATES ★ NO MERCY ★&nbsp;</span><span>★ RAW STUDIO ★ WE MAKE LOUD WEBSITES ★ NO TEMPLATES ★ NO MERCY ★&nbsp;</span></div></div>
+
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#"><b>RAW</b> STUDIO</a>
+      <div class="menu"><a href="#">WORK</a><a href="#">ABOUT</a><a href="#">CONTACT</a></div>
+    </nav>
+
+    <header>
+      <h1>WE BUILD<br><span class="fill">LOUD</span><br>WEBSITES</h1>
+      <span class="tag">EST. 2019 · KUALA LUMPUR · NO TEMPLATES, NO MERCY</span>
+    </header>
+
+    <div class="works">
+      <a class="work" href="#"><div class="idx">W.01</div><h3>MOSH PIT<br>RECORDS</h3><p>Identity / Web / 2026</p></a>
+      <a class="work" href="#"><div class="idx">W.02</div><h3>CONCRETE<br>COFFEE</h3><p>Packaging / Web / 2025</p></a>
+      <a class="work" href="#"><div class="idx">W.03</div><h3>ZINE<br>MACHINE</h3><p>Editorial / Print / 2025</p></a>
+    </div>
+
+    <div class="manifesto">
+      <div class="row"><span class="no">R.1</span> WHITE SPACE IS NOT WASTED SPACE. FEAR IS.</div>
+      <div class="row"><span class="no">R.2</span> IF EVERYONE LIKES IT, IT IS ALREADY BORING.</div>
+      <div class="row"><span class="no">R.3</span> THE GRID IS A SUGGESTION, NOT A LAW.</div>
+      <div class="row"><span class="no">R.4</span> SHIP IT LOUD. SHIP IT RAW.</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">
+      <div class="big">RAW★</div>
+      <div class="meta"><span>RAW STUDIO KL</span><span>HELLO@RAW.STUDIO</span><span>© 2026</span></div>
+    </div>
+  </footer>
+</body>
+</html>

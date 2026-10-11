@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nest — Bento Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: #f6f7f9; color: #17181c; padding: 34px 20px 60px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .head { margin-bottom: 22px; }
+  .eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b7280; }
+  h1 { font-size: 26px; letter-spacing: -0.02em; margin: 6px 0 4px; }
+  .head p { color: #6b7280; font-size: 14px; }
+
+  .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  .tile { background: #fff; border: 1px solid #e7e9ee; border-radius: 18px; padding: 20px; grid-column: span 2; min-height: 150px; opacity: 0; transform: translateY(12px) scale(0.98); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .tile.on { opacity: 1; transform: none; }
+  .t-label { font-size: 12px; font-weight: 600; color: #6b7280; display: flex; justify-content: space-between; align-items: center; }
+  .pill { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+  .up { background: #e8f7ee; color: #15803d; }
+  .down { background: #fdecec; color: #b91c1c; }
+  .big { font-size: 28px; font-weight: 750; letter-spacing: -0.02em; margin: 8px 0 2px; }
+  .sub { font-size: 12px; color: #6b7280; }
+
+  .span4 { grid-column: span 4; }
+  .span3 { grid-column: span 3; }
+  .span6 { grid-column: span 6; }
+
+  /* chart tile */
+  .chart { display: flex; align-items: flex-end; gap: 10px; height: 130px; margin-top: 18px; }
+  .bar { flex: 1; background: linear-gradient(180deg, #93c5fd, #3b82f6); border-radius: 8px 8px 4px 4px; height: 0; transition: height 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .bar.hot { background: linear-gradient(180deg, #fcd34d, #f59e0b); }
+
+  /* progress ring */
+  .ring { display: flex; align-items: center; gap: 16px; margin-top: 10px; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .track { stroke: #edf0f4; }
+  .ring .fill { stroke: #22c55e; stroke-linecap: round; transition: stroke-dashoffset 1.2s ease; }
+
+  /* tasks */
+  ul { list-style: none; margin-top: 12px; display: grid; gap: 9px; }
+  li { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #374151; }
+  .box { width: 16px; height: 16px; border: 1.5px solid #c9ced8; border-radius: 5px; flex: none; }
+  li.done .box { background: #3b82f6; border-color: #3b82f6; position: relative; }
+  li.done .box::after { content: "✓"; color: #fff; font-size: 11px; position: absolute; left: 2.5px; top: -1px; }
+  li.done span { text-decoration: line-through; color: #9ca3af; }
+
+  /* team */
+  .avatars { display: flex; margin-top: 14px; }
+  .av { width: 38px; height: 38px; border-radius: 50%; border: 3px solid #fff; margin-left: -10px; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; }
+  .av:first-child { margin-left: 0; }
+  .a1 { background: #6366f1; } .a2 { background: #ec4899; } .a3 { background: #14b8a6; } .a4 { background: #f59e0b; }
+  .more { background: #f3f4f6; color: #6b7280; }
+
+  /* status banner */
+  .status { display: flex; align-items: center; gap: 12px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px #e8f7ee; flex: none; }
+  .status b { font-size: 14px; }
+  .status span { font-size: 12.5px; color: #6b7280; }
+  .status .link { margin-left: auto; font-size: 12.5px; font-weight: 600; color: #3b82f6; }
+
+  @media (max-width: 780px) { .bento { grid-template-columns: repeat(2, 1fr); } .span4, .span3, .span6, .tile { grid-column: span 2; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Nest workspace</div>
+      <h1>Everything, one grid.</h1>
+      <p>Weekly overview — 12 to 18 October</p>
+    </div>
+
+    <div class="bento">
+      <div class="tile span4">
+        <div class="t-label">Revenue <span class="pill up">▲ 12.4%</span></div>
+        <div class="big">RM 24,318</div>
+        <div class="sub">vs RM 21,630 last week</div>
+        <div class="chart">
+          <div class="bar" data-h="35%"></div><div class="bar" data-h="55%"></div><div class="bar" data-h="42%"></div>
+          <div class="bar" data-h="70%"></div><div class="bar hot" data-h="92%"></div><div class="bar" data-h="64%"></div>
+          <div class="bar" data-h="78%"></div>
+        </div>
+      </div>
+
+      <div class="tile">
+        <div class="t-label">Active users <span class="pill up">▲ 3.1%</span></div>
+        <div class="big" data-count="8412">0</div>
+        <div class="sub">signed in this week</div>
+      </div>
+
+      <div class="tile">
+        <div class="t-label">Storage</div>
+        <div class="ring">
+          <svg width="74" height="74" viewBox="0 0 74 74">
+            <circle class="track" cx="37" cy="37" r="31" fill="none" stroke-width="8"></circle>
+            <circle class="fill" cx="37" cy="37" r="31" fill="none" stroke-width="8" stroke-dasharray="194.8" stroke-dashoffset="194.8" data-off="58.4"></circle>
+          </svg>
+          <div><div class="big" style="font-size:22px">70%</div><div class="sub">12.6 / 18 GB</div></div>
+        </div>
+      </div>
+
+      <div class="tile span3">
+        <div class="t-label">Tasks due today</div>
+        <ul>
+          <li class="done"><span class="box"></span><span>Ship bento layout</span></li>
+          <li><span class="box"></span><span>Review onboarding copy</span></li>
+          <li><span class="box"></span><span>Call design vendor</span></li>
+        </ul>
+      </div>
+
+      <div class="tile span3">
+        <div class="t-label">Team online <span class="pill up">6</span></div>
+        <div class="avatars">
+          <div class="av a1">NA</div><div class="av a2">DK</div><div class="av a3">SR</div><div class="av a4">MF</div><div class="av more">+4</div>
+        </div>
+        <div class="sub" style="margin-top:12px">Nurul, Daniel, Sara and 3 others are active right now.</div>
+      </div>
+
+      <div class="tile span6 status">
+        <span class="dot"></span>
+        <div><b>All systems normal</b><br><span>API 42ms · CDN 99.99% uptime · last incident 63 days ago</span></div>
+        <span class="link">View status →</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // entrance stagger
+    document.querySelectorAll('.tile').forEach((t, i) => setTimeout(() => t.classList.add('on'), 120 + i * 90));
+    // grow bars
+    setTimeout(() => document.querySelectorAll('.bar').forEach(b => b.style.height = b.dataset.h), 500);
+    // fill ring
+    setTimeout(() => document.querySelector('.ring .fill').style.strokeDashoffset = document.querySelector('.ring .fill').dataset.off, 600);
+    // count up
+    const el = document.querySelector('[data-count]');
+    const target = +el.dataset.count, t0 = performance.now();
+    (function tick(t) {
+      const p = Math.min((t - t0 - 400) / 1200, 1);
+      if (p > 0) el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+    })(performance.now());
+  </script>
+</body>
+</html>

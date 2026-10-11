@@ -92,13 +92,24 @@ node build.js        # or just run start.bat
 
 ## Currently in the library
 
-**Empty** — a clean slate. Add your first design with the **Add design** button (saved in
-your browser, then **Export for build** + `imported/` + `node build.js` to make it permanent),
-or register existing projects in `library.json`.
+**10 style showcases** — one self-contained reference page per popular design style, all
+pure HTML/CSS/JS with zero dependencies:
 
-The original sample collection (Emas landing page, LinkHub, pricing section, design links,
-todo-list spec) still exists in the git history — see the initial commits if you ever want
-to restore it.
+| # | Design | Style |
+|---|---|---|
+| 1 | Minimalist — SaaS Landing | calm, content-first |
+| 2 | Brutalist — Creative Studio | raw, loud, high contrast |
+| 3 | Bento Grid — Feature Dashboard | rounded boxes of many sizes |
+| 4 | Editorial — Magazine Layout | serif, columns, drop caps |
+| 5 | 3D Interactive — CSS Scene | drag-to-spin cube, no WebGL |
+| 6 | Scrollytelling — Product Story | sticky visual driven by scroll |
+| 7 | Glassmorphism — Glass UI Kit | frosted blur over colour blobs |
+| 8 | Dark Tech — Cyberpunk Terminal | neon on black, self-typing terminal |
+| 9 | Retro / Y2K — Nostalgia Page | fake browser chrome, marquee, hit counter |
+| 10 | Motion-Driven — Animated Landing | staggered reveals, magnetic CTA, marquees |
+
+An earlier sample collection (Emas landing page, LinkHub, design links, todo-list spec)
+still exists in the git history — see the initial commits if you ever want to restore it.
 
 ## Notes
 

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEXUS//TERMINAL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #05050a; color: #c8ffd8; font-family: Consolas, ui-monospace, "Cascadia Mono", monospace; min-height: 100vh; padding: 34px 20px 60px; position: relative; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 255, 156, 0.03) 0 1px, transparent 1px 3px); pointer-events: none; z-index: 5; }
+  body::after { content: ""; position: fixed; inset: 0; background: linear-gradient(rgba(0, 255, 156, 0.04), transparent 30%); pointer-events: none; animation: flick 4s infinite; z-index: 6; }
+  @keyframes flick { 0%, 100% { opacity: 0.6; } 92% { opacity: 0.6; } 93% { opacity: 0.2; } 94% { opacity: 0.6; } 97% { opacity: 0.35; } }
+
+  .wrap { max-width: 860px; margin: 0 auto; position: relative; z-index: 2; }
+  .hud { display: flex; justify-content: space-between; font-size: 11.5px; letter-spacing: 0.2em; color: #00ff9c; text-transform: uppercase; border: 1px solid #123; border-color: #0e3d29; padding: 10px 14px; margin-bottom: 22px; background: rgba(0, 255, 156, 0.03); }
+  .hud .m { color: #ff2bd6; }
+  .hud .blink { animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .term { border: 1px solid #0e3d29; background: rgba(5, 10, 8, 0.85); box-shadow: 0 0 40px rgba(0, 255, 156, 0.08), inset 0 0 80px rgba(0, 0, 0, 0.6); }
+  .term-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #0e3d29; font-size: 12px; letter-spacing: 0.14em; color: #00ff9c; }
+  .term-head .dots { display: flex; gap: 6px; margin-right: 8px; }
+  .term-head .dots i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #0e3d29; }
+  .term-head .dots i:first-child { background: #ff2bd6; }
+  .term-head .dots i:nth-child(2) { background: #00ff9c; }
+  .term-head .dots i:last-child { background: #ffd400; }
+  .term-body { padding: 18px; font-size: 13.5px; line-height: 1.75; min-height: 300px; white-space: pre-wrap; word-break: break-word; }
+  .cursor { display: inline-block; width: 9px; height: 17px; background: #00ff9c; vertical-align: -3px; animation: blink 0.9s steps(1) infinite; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 22px; }
+  .mod { border: 1px solid #0e3d29; padding: 18px; background: rgba(0, 255, 156, 0.02); position: relative; transition: all 0.25s; }
+  .mod::before, .mod::after { content: ""; position: absolute; width: 14px; height: 14px; border: 2px solid #00ff9c; }
+  .mod::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+  .mod::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+  .mod:hover { border-color: #00ff9c; box-shadow: 0 0 24px rgba(0, 255, 156, 0.18); }
+  .mod .k { font-size: 10.5px; letter-spacing: 0.24em; color: #5da886; text-transform: uppercase; }
+  .mod .v { font-size: 27px; color: #00ff9c; margin: 8px 0 4px; text-shadow: 0 0 14px rgba(0, 255, 156, 0.5); }
+  .mod.mag .v { color: #ff2bd6; text-shadow: 0 0 14px rgba(255, 43, 214, 0.5); }
+  .mod .s { font-size: 11.5px; color: #4c7a63; }
+
+  h1 { font-size: 20px; letter-spacing: 0.3em; color: #00ff9c; text-align: center; margin: 34px 0 6px; text-shadow: 0 0 22px rgba(0, 255, 156, 0.55); }
+  .sub { text-align: center; font-size: 11.5px; letter-spacing: 0.28em; color: #5da886; margin-bottom: 26px; }
+  .sub .m { color: #ff2bd6; }
+
+  @media (max-width: 640px) { .grid3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hud">
+      <span>NEXUS_OS v2.77 <span class="blink">▮</span></span>
+      <span>UPLINK: <b style="color:#00ff9c">STABLE</b></span>
+      <span class="m">SECTOR-7 // NIGHT MODE</span>
+    </div>
+
+    <h1>NEXUS//TERMINAL</h1>
+    <div class="sub">AI OPERATIONS CONSOLE — <span class="m">AUTHORIZED PERSONNEL ONLY</span></div>
+
+    <div class="term">
+      <div class="term-head"><span class="dots"><i></i><i></i><i></i></span> root@nexus: ~/ops</div>
+      <div class="term-body" id="term"><span class="cursor"></span></div>
+    </div>
+
+    <div class="grid3">
+      <div class="mod"><div class="k">Neural load</div><div class="v" data-n="87.2">0</div><div class="s">% of cluster capacity</div></div>
+      <div class="mod mag"><div class="k">Threats blocked</div><div class="v" data-n="1337">0</div><div class="s">last 24 hours</div></div>
+      <div class="mod"><div class="k">Uptime</div><div class="v" data-n="99.99">0</div><div class="s">% — 447 days streak</div></div>
+    </div>
+  </div>
+
+  <script>
+    // self-typing boot sequence
+    const el = document.getElementById('term');
+    const script = [
+      ['$ nexus boot --sector 7', 'g'],
+      ['[ok] neural core ......... ONLINE', 'dim'],
+      ['[ok] uplink to grid ...... STABLE', 'dim'],
+      ['[ok] threat lattice ...... ARMED', 'dim'],
+      ['', ''],
+      ['$ nexus run infiltrate --target vault_77', 'g'],
+      ['> bypassing ICE layer ....... done', 'dim'],
+      ['> spoofing signature ........ done', 'dim'],
+      ['> downloading payload ....... 4.2 TB', 'dim'],
+      ['', ''],
+      ['ACCESS GRANTED. welcome back, operator.', 'ok']
+    ];
+    const cls = { g: 'color:#00ff9c', dim: 'color:#5da886', ok: 'color:#ff2bd6;font-weight:bold' };
+    let li = 0, ci = 0;
+    const cursor = () => '<span class="cursor"></span>';
+    function render(lines) { el.innerHTML = lines.map(l => l.t ? `<span style="${cls[l.c] || ''}">${l.t}</span>` : '&nbsp;').join('\n') + '\n' + cursor(); }
+    const lines = [];
+    (function type() {
+      if (li >= script.length) { render(lines); return; }
+      const [text, c] = script[li];
+      ci++;
+      lines[li] = { t: text.slice(0, ci), c };
+      render(lines);
+      if (ci >= text.length) { li++; ci = 0; setTimeout(type, text ? 180 : 60); }
+      else setTimeout(type, text[ci - 1] === ' ' ? 12 : 34);
+    })();
+
+    // count-up modules
+    document.querySelectorAll('[data-n]').forEach(el2 => {
+      const target = parseFloat(el2.dataset.n), dec = target % 1 ? 2 : 0;
+      let p = 0; const t0 = performance.now();
+      (function tick(t) {
+        p = Math.min((t - t0 - 3200) / 1600, 1); // start after typing
+        if (p > 0) el2.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(dec);
+        if (p < 1) requestAnimationFrame(tick);
+      })(performance.now());
+    });
+  </script>
+</body>
+</html>

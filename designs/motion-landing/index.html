@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PULSE — Motion Landing</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: #0c0c11; color: #f2f2f5; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+  /* breathing blob */
+  .blob-wrap { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  .blob { position: absolute; width: 560px; height: 560px; top: -120px; left: 50%; margin-left: -280px; background: conic-gradient(from 90deg, #7c3aed, #06b6d4, #7c3aed); filter: blur(110px); opacity: 0.35; border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; animation: breathe 12s ease-in-out infinite; }
+  @keyframes breathe {
+    0%, 100% { border-radius: 46% 54% 58% 42% / 52% 44% 56% 48%; transform: translate(0, 0) scale(1); }
+    33% { border-radius: 58% 42% 44% 56% / 44% 58% 42% 56%; transform: translate(50px, 30px) scale(1.12); }
+    66% { border-radius: 42% 58% 52% 48% / 56% 46% 54% 44%; transform: translate(-40px, 60px) scale(0.94); }
+  }
+
+  nav { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 24px 0; }
+  .logo { font-weight: 800; letter-spacing: 0.18em; font-size: 14px; }
+  .logo b { color: #c8f542; }
+  nav .cta { background: #c8f542; color: #0c0c11; font-weight: 700; font-size: 13px; border: 0; border-radius: 999px; padding: 10px 20px; cursor: pointer; }
+
+  header { position: relative; z-index: 2; text-align: center; padding: 110px 0 90px; }
+  .words { font-size: clamp(40px, 8vw, 84px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; }
+  .words .w { display: inline-block; overflow: hidden; vertical-align: bottom; }
+  .words .w i { display: inline-block; font-style: normal; transform: translateY(110%); animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards; }
+  .words .w:nth-child(2) i { animation-delay: 0.09s; } .words .w:nth-child(3) i { animation-delay: 0.18s; }
+  .words .w:nth-child(4) i { animation-delay: 0.27s; } .words .w:nth-child(5) i { animation-delay: 0.36s; }
+  .words .lime { color: #c8f542; }
+  @keyframes rise { to { transform: none; } }
+  .tagline { color: #9b9ba7; font-size: 17px; margin: 26px auto 36px; max-width: 520px; opacity: 0; animation: fadein 0.8s ease 0.55s forwards; }
+  @keyframes fadein { to { opacity: 1; } }
+  .cta-big { display: inline-block; background: #c8f542; color: #0c0c11; font-weight: 800; font-size: 15px; border: 0; border-radius: 999px; padding: 16px 34px; cursor: pointer; opacity: 0; animation: fadein 0.8s ease 0.7s forwards; transition: transform 0.2s ease; will-change: transform; }
+  .cta-note { display: block; margin-top: 14px; font-size: 12px; color: #9b9ba7; opacity: 0; animation: fadein 0.8s ease 0.85s forwards; }
+
+  .marquee { position: relative; z-index: 2; background: #1c1c26; border-top: 1px solid #26262f; border-bottom: 1px solid #26262f; overflow: hidden; }
+  .marquee div { display: inline-flex; gap: 34px; white-space: nowrap; padding: 13px 0; font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #9b9ba7; animation: slide 20s linear infinite; }
+  .marquee b { color: #c8f542; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  section { position: relative; z-index: 2; padding: 80px 0; }
+  .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .rv.on { opacity: 1; transform: none; }
+  h2 { font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em; margin-bottom: 10px; }
+  .lead { color: #9b9ba7; font-size: 15.5px; max-width: 520px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 40px; }
+  .stat { border: 1px solid #26262f; border-radius: 18px; padding: 26px; background: rgba(255, 255, 255, 0.02); }
+  .stat .n { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; color: #c8f542; }
+  .stat .l { color: #9b9ba7; font-size: 13px; margin-top: 4px; }
+  @media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="blob-wrap"><div class="blob"></div></div>
+
+  <div class="wrap">
+    <nav>
+      <div class="logo">PUL<b>✦</b>SE</div>
+      <button class="cta">Sign up</button>
+    </nav>
+
+    <header>
+      <div class="words">
+        <span class="w"><i>Design</i></span>
+        <span class="w"><i>that</i></span><br>
+        <span class="w"><i class="lime">moves</i></span>
+        <span class="w"><i>before</i></span>
+        <span class="w"><i>it</i></span>
+        <span class="w"><i class="lime">speaks.</i></span>
+      </div>
+      <p class="tagline">Pulse is a motion-first toolkit — every element on this page is alive. Hover the button. Scroll the numbers. Feel the blob breathe.</p>
+      <button class="cta-big" id="magnet">Try the magnetic button →</button>
+      <span class="cta-note">Move your cursor around it. It likes you.</span>
+    </header>
+  </div>
+
+  <div class="marquee"><div>
+    <span>60fps everywhere</span><b>✦</b><span>zero dependencies</span><b>✦</b><span>spring physics</span><b>✦</b><span>scroll hooks</span><b>✦</b><span>staggered reveals</span><b>✦</b>
+    <span>60fps everywhere</span><b>✦</b><span>zero dependencies</span><b>✦</b><span>spring physics</span><b>✦</b><span>scroll hooks</span><b>✦</b><span>staggered reveals</span><b>✦</b>
+  </div></div>
+
+  <div class="wrap">
+    <section>
+      <h2 class="rv">Numbers that move too</h2>
+      <p class="lead rv">Scroll into view and they count themselves up. Small details, big life.</p>
+      <div class="stats">
+        <div class="stat rv"><div class="n" data-n="98">0</div><div class="l">% smoother than static pages*</div></div>
+        <div class="stat rv"><div class="n" data-n="60">0</div><div class="l">frames per second, locked</div></div>
+        <div class="stat rv"><div class="n" data-n="0">0</div><div class="l">JS libraries harmed**</div></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // magnetic CTA — follows the cursor, springs back
+    const m = document.getElementById('magnet');
+    addEventListener('pointermove', e => {
+      const r = m.getBoundingClientRect();
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      if (dist < 140) m.style.transform = `translate(${dx * 0.28}px, ${dy * 0.28}px)`;
+      else m.style.transform = '';
+    });
+
+    // count-up stats on view
+    const io = new IntersectionObserver(es => es.forEach(en => {
+      if (!en.isIntersecting || en.target.dataset.done) return;
+      en.target.dataset.done = 1;
+      en.target.closest('.rv')?.classList.add('on');
+      const target = +en.target.dataset.n, t0 = performance.now();
+      (function tick(t) {
+        const p = Math.min((t - t0) / 1400, 1);
+        en.target.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }), { threshold: 0.6 });
+    document.querySelectorAll('[data-n]').forEach(el => io.observe(el));
+
+    // section reveals
+    const rio = new IntersectionObserver(es => es.forEach(en => en.isIntersecting && en.target.classList.add('on')), { threshold: 0.2 });
+    document.querySelectorAll('.rv').forEach(el => rio.observe(el));
+  </script>
+</body>
+</html>
