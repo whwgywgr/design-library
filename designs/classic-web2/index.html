@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelPortal — Your Source For Everything Cool :: Home</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #d9dde3; font-family: Arial, Tahoma, sans-serif; font-size: 12.5px; color: #333; padding: 18px 10px 40px; }
+  a { color: #1a5299; }
+  a:hover { text-decoration: underline; }
+  .page { max-width: 920px; margin: 0 auto; background: #fff; border: 1px solid #b5bdc9; box-shadow: 0 3px 14px rgba(40, 60, 90, 0.25); position: relative; }
+
+  /* header + tabs */
+  .header { background: linear-gradient(180deg, #6ba3e0, #2f5f9e 70%, #2a548c); padding: 22px 26px 16px; color: #fff; position: relative; }
+  .logo { font-size: 30px; font-weight: bold; letter-spacing: -0.5px; text-shadow: 0 2px 3px rgba(0, 0, 0, 0.4); }
+  .logo span { color: #cfe2f8; font-weight: normal; }
+  .tagline { font-style: italic; font-size: 11.5px; color: #d7e6fa; margin-top: 2px; }
+  .beta { position: absolute; top: -14px; right: -16px; width: 84px; height: 84px; background: #ffd400; color: #b34000; font-weight: bold; font-size: 14px; display: grid; place-items: center; transform: rotate(12deg); clip-path: polygon(50% 0%, 61% 12%, 75% 6%, 80% 21%, 95% 21%, 92% 36%, 105% 44%, 93% 54%, 100% 67%, 85% 71%, 85% 86%, 70% 83%, 63% 97%, 50% 87%, 37% 97%, 30% 83%, 15% 86%, 15% 71%, 0% 67%, 7% 54%, -5% 44%, 8% 36%, 5% 21%, 20% 21%, 25% 6%, 39% 12%); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); text-align: center; line-height: 1.1; }
+  .tabs { background: linear-gradient(180deg, #33619c, #2a548c); padding: 0 26px; display: flex; gap: 3px; }
+  .tabs a { color: #cfe0f5; text-decoration: none; font-weight: bold; font-size: 12px; padding: 8px 16px; border: 1px solid #24487a; border-bottom: 0; border-radius: 6px 6px 0 0; background: linear-gradient(180deg, #4879b8, #35619c); }
+  .tabs a:hover { background: linear-gradient(180deg, #5c8cc9, #4272ae); }
+  .tabs a.active { background: #fff; color: #2f5f9e; border-color: #b5bdc9; padding-bottom: 9px; margin-bottom: -1px; }
+
+  .breadcrumb { padding: 8px 26px; font-size: 11px; color: #888; border-bottom: 1px solid #e4e8ee; }
+  .breadcrumb b { color: #444; }
+
+  .cols { display: flex; gap: 18px; padding: 18px 26px 26px; }
+  .main { flex: 1; min-width: 0; }
+  .side { width: 220px; flex: none; }
+
+  /* sidebar widgets */
+  .box { border: 1px solid #b9cce4; border-radius: 8px; margin-bottom: 14px; overflow: hidden; background: #fff; }
+  .box h3 { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; color: #fff; background: linear-gradient(180deg, #6ba3e0, #3a6cae); padding: 6px 12px; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3); }
+  .box .in { padding: 10px 12px; background: #eef3fa; }
+  .side ul { list-style: none; }
+  .side ul li { padding: 4px 0; border-bottom: 1px dotted #c4d4e8; font-size: 12px; }
+  .side ul li:last-child { border-bottom: 0; }
+  .side ul li a { text-decoration: none; }
+  .side ul li a::before { content: "» "; color: #7ba2d4; }
+  .side ul li .cnt { color: #999; font-size: 10.5px; }
+  .search { display: flex; gap: 4px; }
+  .search input { flex: 1; border: 1px solid #a9bdd6; padding: 4px 6px; font: inherit; font-size: 12px; }
+  .glossy { display: inline-block; border: 1px solid #2a548c; border-radius: 12px; color: #fff; font-weight: bold; font-size: 11.5px; padding: 5px 14px; cursor: pointer; text-decoration: none; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+    background: linear-gradient(180deg, #9cc4ef, #5b93d5 48%, #366cae 52%, #4a7ebb); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 2px rgba(0, 0, 0, 0.2); }
+  .glossy:hover { background: linear-gradient(180deg, #b3d3f5, #6ba3e0 48%, #4272ae 52%, #5588c5); }
+  .glossy:active { box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3); }
+
+  /* poll */
+  .poll label { display: block; padding: 3px 0; font-size: 12px; cursor: pointer; }
+  .poll .bar-wrap { background: #fff; border: 1px solid #b9cce4; border-radius: 4px; height: 14px; margin: 3px 0 6px; overflow: hidden; }
+  .poll .bar { height: 100%; width: 0; background: linear-gradient(180deg, #8fbcec, #366cae); transition: width 0.9s ease; }
+  .poll .pct { font-weight: bold; color: #2f5f9e; }
+
+  /* ads */
+  .ads { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ad { border: 1px dashed #b0bfd4; height: 92px; display: grid; place-items: center; font-size: 10.5px; color: #98a7bd; background: #f4f7fb; }
+
+  /* article */
+  .post h1 { font-size: 20px; color: #2f5f9e; letter-spacing: -0.3px; margin-bottom: 4px; }
+  .meta { font-size: 10.5px; color: #999; padding: 5px 0 10px; border-bottom: 1px solid #e4e8ee; margin-bottom: 12px; }
+  .meta b { color: #555; }
+  .post p { line-height: 1.8; margin-bottom: 12px; font-size: 12.5px; }
+  .post img { float: left; margin: 3px 12px 8px 0; border: 1px solid #ccc; padding: 3px; background: #fff; }
+  .ph { width: 190px; height: 130px; background: linear-gradient(135deg, #9cc4ef, #2f5f9e); display: inline-grid; place-items: center; color: #fff; font-size: 34px; }
+  .share { margin-top: 8px; padding: 8px 0; border-top: 1px dotted #ccc; font-size: 11px; color: #888; }
+
+  /* comments */
+  .comments { margin-top: 20px; }
+  .comments h2 { font-size: 14px; color: #2f5f9e; border-bottom: 2px solid #dfe6ef; padding-bottom: 5px; margin-bottom: 12px; }
+  .comment { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px dotted #d5dce6; }
+  .ava { width: 36px; height: 36px; flex: none; background: linear-gradient(135deg, #c4d4e8, #7ba2d4); border: 1px solid #b5bdc9; display: grid; place-items: center; font-size: 16px; color: #fff; }
+  .comment .who { font-weight: bold; font-size: 12px; }
+  .comment .who span { color: #999; font-weight: normal; font-size: 10.5px; }
+  .comment p { margin-top: 3px; line-height: 1.6; }
+  .cform { background: #eef3fa; border: 1px solid #d5dce6; border-radius: 8px; padding: 12px; margin-top: 14px; }
+  .cform input, .cform textarea { width: 100%; border: 1px solid #a9bdd6; padding: 5px 7px; font: inherit; font-size: 12px; margin-bottom: 8px; }
+  .cform textarea { height: 54px; resize: vertical; }
+
+  footer { border-top: 1px solid #b5bdc9; background: #eef1f5; padding: 14px 26px; font-size: 10.5px; color: #8894a5; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer .links a { margin-right: 10px; }
+  .badge { display: inline-block; border: 1px solid #999; background: #fff; padding: 1px 5px; font-size: 9.5px; font-weight: bold; color: #666; margin-left: 4px; }
+  .badge.rss { color: #fff; background: #f60; border-color: #c50; }
+
+  @media (max-width: 760px) { .cols { flex-direction: column; } .side { width: 100%; } .beta { right: 4px; } }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="beta">WEB<br>2.0<br>BETA!</div>
+      <div class="logo">Pixel<span>Portal</span>.com</div>
+      <div class="tagline">Your #1 source for everything cool on the interwebs — since 2005!</div>
+    </div>
+    <div class="tabs">
+      <a class="active" href="#">Home</a><a href="#">Articles</a><a href="#">Downloads</a><a href="#">Gallery</a><a href="#">Forum</a><a href="#">About Us</a>
+    </div>
+    <div class="breadcrumb">You are here: <a href="#">Home</a> » <a href="#">Articles</a> » <b>Web design is dead (again)</b></div>
+
+    <div class="cols">
+      <div class="main">
+        <div class="post">
+          <h1>Web design is dead (again). We disagree.</h1>
+          <div class="meta">Posted <b>12 Oct 2006</b> by <b>admin</b> · Category: <a href="#">Web Design</a> · <a href="#">32 comments</a> · <a href="#">Permalink</a></div>
+          <p><span class="ph">🖥️</span>Every few months somebody declares web design finished. First tables were going to kill it, then Flash, then "the industry" moved on to gradients, rounded corners and reflections on everything.</p>
+          <p>Here at PixelPortal we say: good design never dies, it just changes its hairstyle. Remember when a drop shadow had to be a sliced GIF? When rounded corners were four images and a prayer? We do — and honestly, we kind of miss the craftsmanship.</p>
+          <p>This week we look back at five techniques from the golden era that still hold up: the humble breadcrumb, the trusty left sidebar, the gloss button you can almost feel, the 1px bevel, and the word "community" used without irony.</p>
+          <p>Agree? Disagree? The comment box is right below, the guestbook is still warm, and the forum is open 24 hours. The interwebs is what we make it, folks. — <i>The Editor</i></p>
+          <div class="share">❤ Like (128) · ✉ Tell a friend · 🔖 Bookmark this page (Ctrl+D) · <a href="#">Print this article</a></div>
+        </div>
+
+        <div class="comments">
+          <h2>32 Comments</h2>
+          <div id="clist">
+            <div class="comment"><div class="ava">😎</div><div><div class="who">webmaster_2006 <span>· 12 Oct 2006, 3:42 PM</span></div><p>First!!!1 Great article admin. The gloss buttons section is so true, my whole site is gloss buttons lol.</p></div></div>
+            <div class="comment"><div class="ava">🐱</div><div><div class="who">xX_nurul_Xx <span>· 12 Oct 2006, 5:17 PM</span></div><p>Saya suka baca blog ni setiap hari. Keep it up! Greeting from Shah Alam 😊</p></div></div>
+          </div>
+          <div class="cform">
+            <b style="font-size:12px;color:#2f5f9e">Leave a comment:</b><br><br>
+            <input id="cname" placeholder="Your name (or be Anonymous 2006)">
+            <textarea id="ctext" placeholder="Say something nice…"></textarea>
+            <button class="glossy" id="cpost">Post Comment</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="box"><h3>Search</h3><div class="in">
+          <div class="search"><input placeholder="Google search…"><button class="glossy">Go!</button></div>
+        </div></div>
+
+        <div class="box"><h3>Categories</h3><div class="in"><ul>
+          <li><a href="#">Web Design</a> <span class="cnt">(128)</span></li>
+          <li><a href="#">Free Templates</a> <span class="cnt">(54)</span></li>
+          <li><a href="#">Photoshop Tips</a> <span class="cnt">(91)</span></li>
+          <li><a href="#">Nostalgia</a> <span class="cnt">(47)</span></li>
+          <li><a href="#">Forum News</a> <span class="cnt">(12)</span></li>
+        </ul></div></div>
+
+        <div class="box"><h3>Weekly Poll</h3><div class="in poll" id="poll">
+          <b>Best button style?</b>
+          <div id="pollOpts">
+            <label><input type="radio" name="p" value="0" checked> Glossy aqua</label>
+            <label><input type="radio" name="p" value="1"> Flat & minimal</label>
+            <label><input type="radio" name="p" value="2"> Bevelled grey</label>
+          </div>
+          <button class="glossy" id="pvote">Vote!</button>
+          <div id="pollRes" style="display:none">
+            <div>Glossy aqua <span class="pct" id="p0">0%</span><div class="bar-wrap"><div class="bar" id="b0"></div></div></div>
+            <div>Flat & minimal <span class="pct" id="p1">0%</span><div class="bar-wrap"><div class="bar" id="b1"></div></div></div>
+            <div>Bevelled grey <span class="pct" id="p2">0%</span><div class="bar-wrap"><div class="bar" id="b2"></div></div></div>
+            <div style="color:#999;font-size:10.5px;margin-top:4px" id="ptotal"></div>
+          </div>
+        </div></div>
+
+        <div class="box"><h3>Sponsors</h3><div class="in ads">
+          <div class="ad">Your Ad Here<br>125 × 125</div><div class="ad">Your Ad Here<br>125 × 125</div>
+        </div></div>
+
+        <div class="box"><h3>Stay Updated</h3><div class="in">
+          <a href="#" class="glossy" style="display:block;text-align:center">📡 Subscribe RSS Feed</a>
+          <p style="font-size:10.5px;color:#8894a5;margin-top:8px;text-align:center">Get the latest posts in your RSS reader!</p>
+        </div></div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="links"><a href="#">Home</a><a href="#">About</a><a href="#">Contact</a><a href="#">Privacy</a><a href="#">Site Map</a></div>
+      <div>© 2006–2007 PixelPortal.com · All rights reserved · <span class="badge">XHTML 1.0</span><span class="badge">CSS</span><span class="badge rss">RSS ▸</span></div>
+    </footer>
+  </div>
+
+  <script>
+    // live-ish date in breadcrumb
+    document.querySelector('.breadcrumb').innerHTML = 'Today is <b>' + new Date().toDateString() + '</b> — You are here: <a href="#">Home</a> » <a href="#">Articles</a> » <b>Web design is dead (again)</b>';
+
+    // poll with animated result bars
+    const votes = [214, 87, 31];
+    document.getElementById('pvote').addEventListener('click', () => {
+      const pick = +document.querySelector('input[name="p"]:checked').value;
+      votes[pick]++;
+      const total = votes.reduce((a, b) => a + b, 0);
+      document.getElementById('pollOpts').style.display = 'none';
+      document.getElementById('pvote').style.display = 'none';
+      document.getElementById('pollRes').style.display = 'block';
+      votes.forEach((v, i) => {
+        const pct = Math.round(v / total * 100);
+        document.getElementById('p' + i).textContent = pct + '%';
+        setTimeout(() => document.getElementById('b' + i).style.width = pct + '%', 60 * i + 50);
+      });
+      document.getElementById('ptotal').textContent = 'Total votes: ' + total + ' — thank you for voting!';
+    });
+
+    // comment posting
+    document.getElementById('cpost').addEventListener('click', () => {
+      const name = document.getElementById('cname').value.trim() || 'Anonymous 2006';
+      const text = document.getElementById('ctext').value.trim();
+      if (!text) { document.getElementById('ctext').focus(); return; }
+      const div = document.createElement('div');
+      div.className = 'comment';
+      const now = new Date();
+      div.innerHTML = '<div class="ava">🙂</div><div><div class="who">' + name.replace(/</g, '&lt;') +
+        ' <span>· just now</span></div><p>' + text.replace(/</g, '&lt;') + '</p></div>';
+      const list = document.getElementById('clist');
+      list.insertBefore(div, list.firstChild);
+      document.getElementById('ctext').value = '';
+      document.getElementById('cname').value = '';
+    });
+  </script>
+</body>
+</html>

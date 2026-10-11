@@ -107,6 +107,7 @@ pure HTML/CSS/JS with zero dependencies:
 | 8 | Dark Tech — Cyberpunk Terminal | neon on black, self-typing terminal |
 | 9 | Retro / Y2K — Nostalgia Page | fake browser chrome, marquee, hit counter |
 | 10 | Motion-Driven — Animated Landing | staggered reveals, magnetic CTA, marquees |
+| 11 | Classic Web 2.0 — 2005 Portal | gradient header, glossy buttons, working poll |
 
 An earlier sample collection (Emas landing page, LinkHub, design links, todo-list spec)
 still exists in the git history — see the initial commits if you ever want to restore it.
