@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flatline — Material Era</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Roboto, system-ui, sans-serif; background: #fafafa; color: #212121; -webkit-font-smoothing: antialiased; }
+
+  /* app bar */
+  .appbar { background: #2196F3; color: #fff; display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 58px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26); position: sticky; top: 0; z-index: 20; }
+  .iconbtn { width: 42px; height: 42px; border: 0; background: transparent; color: #fff; font-size: 19px; border-radius: 50%; cursor: pointer; position: relative; overflow: hidden; }
+  .iconbtn:hover { background: rgba(255, 255, 255, 0.12); }
+  .appbar .title { font-size: 18px; font-weight: 500; flex: 1; }
+
+  /* drawer */
+  .scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); opacity: 0; pointer-events: none; transition: opacity 0.25s; z-index: 40; }
+  .drawer { position: fixed; top: 0; bottom: 0; left: 0; width: 264px; background: #fff; z-index: 41; transform: translateX(-105%); transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; }
+  body.drawer-open .scrim { opacity: 1; pointer-events: auto; }
+  body.drawer-open .drawer { transform: none; }
+  .drawer .head { background: #1976D2; color: #fff; padding: 22px 18px; }
+  .drawer .head .ava { width: 52px; height: 52px; border-radius: 50%; background: #FF4081; display: grid; place-items: center; font-size: 22px; margin-bottom: 12px; }
+  .drawer .head b { font-size: 15px; }
+  .drawer .head small { display: block; opacity: 0.8; font-size: 12px; }
+  .drawer nav { padding: 8px 0; overflow: auto; }
+  .drawer nav a { display: flex; align-items: center; gap: 16px; padding: 13px 18px; text-decoration: none; color: #212121; font-size: 14px; }
+  .drawer nav a:hover { background: #f0f0f0; }
+  .drawer nav a.active { background: #e3f2fd; color: #1976D2; font-weight: 600; }
+  .drawer nav .ic { width: 22px; text-align: center; }
+
+  /* ripple */
+  .rip { position: relative; overflow: hidden; }
+  .rip .circle { position: absolute; border-radius: 50%; background: currentColor; opacity: 0.25; transform: scale(0); animation: rip 0.55s ease-out forwards; pointer-events: none; }
+  @keyframes rip { to { transform: scale(2.6); opacity: 0; } }
+
+  /* hero */
+  .hero { max-width: 1020px; margin: 0 auto; padding: 60px 24px 70px; display: flex; gap: 40px; align-items: center; }
+  .hero-copy { flex: 1; }
+  .kicker { color: #2196F3; font-weight: 600; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+  h1 { font-size: clamp(32px, 5vw, 48px); font-weight: 400; letter-spacing: -0.01em; line-height: 1.15; margin: 10px 0 16px; }
+  h1 b { font-weight: 700; color: #1976D2; }
+  .hero p { color: #757575; font-size: 16px; line-height: 1.7; margin-bottom: 26px; max-width: 440px; }
+  .btnrow { display: flex; gap: 12px; }
+  .raised { background: #2196F3; color: #fff; border: 0; font: inherit; font-weight: 600; font-size: 13.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 11px 22px; border-radius: 3px; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26); }
+  .raised:hover { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); }
+  .flatbtn { background: none; border: 0; color: #2196F3; font: inherit; font-weight: 600; font-size: 13.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 11px 16px; border-radius: 3px; cursor: pointer; }
+
+  /* CSS phone mockup */
+  .phone { flex: none; width: 230px; height: 420px; border-radius: 26px; background: #212121; padding: 40px 12px 30px; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35); position: relative; }
+  .phone::before { content: ""; position: absolute; top: 16px; left: 50%; width: 56px; height: 6px; margin-left: -28px; border-radius: 3px; background: #333; }
+  .screen { height: 100%; border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; }
+  .s-bar { height: 52px; background: #2196F3; display: flex; align-items: center; padding: 0 12px; color: #fff; font-size: 12px; font-weight: 500; }
+  .s-hero { height: 96px; background: #FF4081; }
+  .s-row { display: flex; gap: 8px; padding: 10px; }
+  .s-chip { flex: 1; height: 52px; border-radius: 3px; background: #e0e0e0; }
+  .s-line { height: 9px; border-radius: 2px; background: #e0e0e0; margin: 0 12px 8px; }
+  .s-line.short { width: 55%; }
+  .fab { position: absolute; right: 12px; bottom: -18px; width: 46px; height: 46px; border-radius: 50%; background: #FF4081; color: #fff; display: grid; place-items: center; font-size: 22px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35); }
+
+  /* cards */
+  .cards-sec { max-width: 1020px; margin: 0 auto; padding: 20px 24px 70px; }
+  .cards-sec h2 { font-size: 26px; font-weight: 400; margin-bottom: 6px; }
+  .cards-sec .sub2 { color: #757575; font-size: 14.5px; margin-bottom: 26px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card { background: #fff; border-radius: 3px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.26); overflow: hidden; transition: box-shadow 0.25s; }
+  .card:hover { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.26); }
+  .card .cover { height: 110px; display: grid; place-items: center; font-size: 42px; color: #fff; }
+  .c-blue { background: #2196F3; } .c-orange { background: #FF9800; } .c-teal { background: #009688; }
+  .card .body { padding: 16px 18px 6px; }
+  .card h3 { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+  .card p { color: #757575; font-size: 13.5px; line-height: 1.65; }
+  .card .act { display: flex; padding: 10px 8px 8px; }
+  .card .act button { flex: 1; }
+
+  /* snackbar */
+  .snackbar { position: fixed; left: 18px; bottom: 18px; background: #323232; color: #fff; font-size: 13.5px; padding: 14px 20px; border-radius: 3px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); display: flex; gap: 18px; align-items: center; transform: translateY(150%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 60; }
+  .snackbar.show { transform: none; }
+  .snackbar button { background: none; border: 0; color: #FF4081; font-weight: 700; font-size: 12.5px; letter-spacing: 0.06em; cursor: pointer; text-transform: uppercase; }
+
+  .foot { background: #1976D2; color: rgba(255, 255, 255, 0.85); text-align: center; font-size: 12px; padding: 22px; margin-top: 30px; }
+
+  @media (max-width: 800px) { .hero { flex-direction: column; text-align: center; } .hero p { margin-inline: auto; } .btnrow { justify-content: center; } .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <button class="iconbtn rip" id="hamb" aria-label="Menu">☰</button>
+    <div class="title">Flatline</div>
+    <button class="iconbtn rip" aria-label="Search">🔍</button>
+    <button class="iconbtn rip" aria-label="More">⋮</button>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="drawer" id="drawer">
+    <div class="head">
+      <div class="ava">👩‍💻</div>
+      <b>designer@flatline.io</b>
+      <small>Material plan · since 2014</small>
+    </div>
+    <nav>
+      <a class="active rip" href="#"><span class="ic">🏠</span> Home</a>
+      <a class="rip" href="#"><span class="ic">📥</span> Inbox <span style="margin-left:auto;color:#757575">3</span></a>
+      <a class="rip" href="#"><span class="ic">🗂️</span> Projects</a>
+      <a class="rip" href="#"><span class="ic">⚙️</span> Settings</a>
+      <a class="rip" href="#"><span class="ic">❓</span> Help & feedback</a>
+    </nav>
+  </div>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <div class="kicker">Flat design · est. 2013</div>
+      <h1>Remove the gloss.<br><b>Keep the function.</b></h1>
+      <p>When the bevels and gradients died, interface design grew up. Flat colors, honest shadows and motion with meaning — this page is the whole era in one file.</p>
+      <div class="btnrow">
+        <button class="raised rip">Get started</button>
+        <button class="flatbtn rip" id="learnBtn">Learn more</button>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="screen">
+        <div class="s-bar">Flatline</div>
+        <div class="s-hero"></div>
+        <div class="s-row"><div class="s-chip"></div><div class="s-chip"></div></div>
+        <div class="s-line" style="margin-top:6px"></div>
+        <div class="s-line short"></div>
+        <div class="s-line short" style="margin-top:14px"></div>
+      </div>
+      <div class="fab rip" id="fab">+</div>
+    </div>
+  </div>
+
+  <div class="cards-sec">
+    <h2>What's inside</h2>
+    <div class="sub2">Three cards. Every button ripples. Try them.</div>
+    <div class="cards">
+      <div class="card">
+        <div class="cover c-blue">📐</div>
+        <div class="body"><h3>Grid & keylines</h3><p>An 8dp spacing grid, 16dp gutters and content that snaps to keylines. Order without ornament.</p></div>
+        <div class="act"><button class="flatbtn rip">Read more</button></div>
+      </div>
+      <div class="card">
+        <div class="cover c-orange">⚡</div>
+        <div class="body"><h3>Meaningful motion</h3><p>Ripples answer every touch, drawers slide with real easing curves, snackbars appear and leave politely.</p></div>
+        <div class="act"><button class="flatbtn rip">Read more</button></div>
+      </div>
+      <div class="card">
+        <div class="cover c-teal">🎨</div>
+        <div class="body"><h3>Honest color</h3><p>One primary, one accent, greys for text. No gradient ever had to carry this much meaning before.</p></div>
+        <div class="act"><button class="flatbtn rip">Read more</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">Flatline — a tribute to the flat design era (2013–2018) · Built with zero dependencies</div>
+
+  <div class="snackbar" id="snack"><span id="snackMsg">Nothing to compose — it's just a demo 🙂</span><button id="snackOk">OK</button></div>
+
+  <script>
+    // drawer
+    const open = () => document.body.classList.add('drawer-open');
+    const close = () => document.body.classList.remove('drawer-open');
+    document.getElementById('hamb').addEventListener('click', open);
+    document.getElementById('scrim').addEventListener('click', close);
+    addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+    // material ripple on every .rip element
+    document.querySelectorAll('.rip').forEach(el => {
+      el.addEventListener('pointerdown', e => {
+        const r = el.getBoundingClientRect();
+        const d = Math.max(r.width, r.height) * 1.2;
+        const s = document.createElement('span');
+        s.className = 'circle';
+        s.style.width = s.style.height = d + 'px';
+        s.style.left = (e.clientX - r.left - d / 2) + 'px';
+        s.style.top = (e.clientY - r.top - d / 2) + 'px';
+        el.appendChild(s);
+        setTimeout(() => s.remove(), 600);
+      });
+    });
+
+    // snackbar
+    const snack = document.getElementById('snack');
+    const msg = document.getElementById('snackMsg');
+    let snackTimer;
+    function showSnack(text) {
+      msg.textContent = text;
+      snack.classList.add('show');
+      clearTimeout(snackTimer);
+      snackTimer = setTimeout(() => snack.classList.remove('show'), 2600);
+    }
+    document.getElementById('fab').addEventListener('click', () => showSnack("Nothing to compose — it's just a demo 🙂"));
+    document.getElementById('snackOk').addEventListener('click', () => snack.classList.remove('show'));
+    document.getElementById('learnBtn').addEventListener('click', () => showSnack('This IS the lesson — you are inside it.'));
+  </script>
+</body>
+</html>
