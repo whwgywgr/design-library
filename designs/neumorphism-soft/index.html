@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soft UI — Neumorphism Player</title>
+<style>
+  :root { --bg: #e0e5ec; --ink: #5b6472; --mut: #98a2b3;
+    --out: 9px 9px 18px rgba(163, 177, 198, 0.6), -9px -9px 18px rgba(255, 255, 255, 0.85);
+    --out-sm: 5px 5px 10px rgba(163, 177, 198, 0.6), -5px -5px 10px rgba(255, 255, 255, 0.85);
+    --in: inset 6px 6px 12px rgba(163, 177, 198, 0.7), inset -6px -6px 12px rgba(255, 255, 255, 0.8);
+  }
+  body.dark { --bg: #2b2f36; --ink: #c3cad6; --mut: #7d8593;
+    --out: 9px 9px 18px rgba(0, 0, 0, 0.55), -9px -9px 18px rgba(70, 78, 90, 0.35);
+    --out-sm: 5px 5px 10px rgba(0, 0, 0, 0.55), -5px -5px 10px rgba(70, 78, 90, 0.35);
+    --in: inset 6px 6px 12px rgba(0, 0, 0, 0.6), inset -6px -6px 12px rgba(70, 78, 90, 0.3);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 40px 16px; transition: background 0.4s; }
+
+  .switch-row { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--mut); }
+  .toggle { width: 58px; height: 30px; border-radius: 999px; box-shadow: var(--in); position: relative; cursor: pointer; border: 0; background: var(--bg); }
+  .toggle .knob { position: absolute; top: 4px; left: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--bg); box-shadow: var(--out-sm); transition: left 0.25s; }
+  body.dark .toggle .knob { left: 32px; }
+
+  .player { width: 340px; background: var(--bg); border-radius: 26px; box-shadow: var(--out); padding: 30px 28px 34px; text-align: center; transition: background 0.4s; }
+  .art { width: 150px; height: 150px; margin: 0 auto 22px; border-radius: 50%; box-shadow: var(--out); display: grid; place-items: center; font-size: 54px; overflow: hidden; position: relative; }
+  .art::after { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: linear-gradient(135deg, #a8b4c8, #dfe5ee); }
+  body.dark .art::after { background: linear-gradient(135deg, #3a4150, #565f6e); }
+  .art .note { position: relative; z-index: 1; }
+  .playing .art { animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: var(--out), 0 0 0 10px rgba(163, 177, 198, 0.12); } }
+
+  .title { font-size: 17px; font-weight: 600; letter-spacing: 0.01em; }
+  .artist { font-size: 12.5px; color: var(--mut); margin-top: 3px; }
+
+  .progress { height: 12px; border-radius: 999px; box-shadow: var(--in); margin: 24px 6px 6px; position: relative; }
+  .progress .fill { position: absolute; top: 3px; bottom: 3px; left: 3px; width: 30%; border-radius: 999px; background: linear-gradient(90deg, #8fa2bd, #b7c4d8); }
+  .times { display: flex; justify-content: space-between; font-size: 11px; color: var(--mut); padding: 0 8px; }
+
+  .controls { display: flex; justify-content: center; align-items: center; gap: 22px; margin-top: 26px; }
+  .cbtn { width: 54px; height: 54px; border-radius: 50%; border: 0; background: var(--bg); box-shadow: var(--out-sm); color: var(--ink); font-size: 17px; cursor: pointer; transition: all 0.12s; }
+  .cbtn:active, .cbtn.pressed { box-shadow: var(--in); font-size: 15px; }
+  .cbtn.play { width: 68px; height: 68px; font-size: 22px; }
+  .vol { display: flex; align-items: center; gap: 12px; margin-top: 26px; padding: 0 8px; }
+  .vol span { color: var(--mut); font-size: 14px; }
+  input[type="range"] { -webkit-appearance: none; appearance: none; flex: 1; height: 12px; border-radius: 999px; box-shadow: var(--in); outline: none; background: var(--bg); }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--bg); box-shadow: 3px 3px 7px rgba(163, 177, 198, 0.7), -3px -3px 7px rgba(255, 255, 255, 0.85); cursor: pointer; }
+
+  .tiles { display: flex; gap: 24px; }
+  .tile { width: 150px; background: var(--bg); border-radius: 22px; box-shadow: var(--out); padding: 18px 20px; transition: background 0.4s; }
+  .tile .k { font-size: 11.5px; color: var(--mut); letter-spacing: 0.06em; text-transform: uppercase; }
+  .tile .v { font-size: 24px; font-weight: 600; margin-top: 6px; letter-spacing: -0.01em; }
+  .tile .s { font-size: 11.5px; color: var(--mut); margin-top: 2px; }
+</style>
+</head>
+<body>
+  <div class="switch-row">
+    <button class="toggle" id="modeToggle" aria-label="Toggle dark ambient"><span class="knob"></span></button>
+    Dark ambient
+  </div>
+
+  <div class="player" id="player">
+    <div class="art"><span class="note">♪</span></div>
+    <div class="title" id="tTitle">Soft Rain</div>
+    <div class="artist" id="tArtist">Ambient Lo-Fi · Vol. 3</div>
+    <div class="progress"><div class="fill" id="fill"></div></div>
+    <div class="times"><span id="tNow">0:00</span><span id="tDur">3:45</span></div>
+    <div class="controls">
+      <button class="cbtn" id="prev">⏮</button>
+      <button class="cbtn play" id="play">▶</button>
+      <button class="cbtn" id="next">⏭</button>
+    </div>
+    <div class="vol"><span>🔈</span><input type="range" min="0" max="100" value="70"><span>🔊</span></div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">Steps today</div><div class="v" id="steps">0</div><div class="s">goal 10,000</div></div>
+    <div class="tile"><div class="k">Living room</div><div class="v">22.5°C</div><div class="s">humidity 48%</div></div>
+  </div>
+
+  <script>
+    // tracks
+    const tracks = [
+      { t: "Soft Rain", a: "Ambient Lo-Fi · Vol. 3", dur: 225 },
+      { t: "Paper Walls", a: "Kanvas Kamar", dur: 198 },
+      { t: "Slow Clouds", a: "Mei & The Machine", dur: 254 }
+    ];
+    let cur = 0, playing = false, pos = 94, last = 0;
+    const $ = id => document.getElementById(id);
+    const fmt = s => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+
+    function renderTrack() {
+      $("tTitle").textContent = tracks[cur].t;
+      $("tArtist").textContent = tracks[cur].a;
+      $("tDur").textContent = fmt(tracks[cur].dur);
+      pos = 0; renderPos();
+    }
+    function renderPos() {
+      const dur = tracks[cur].dur, p = Math.min(pos / dur, 1);
+      $("fill").style.width = (3 + p * 94) + "%";
+      $("tNow").textContent = fmt(pos);
+    }
+    function loop(t) {
+      if (playing) {
+        pos += (t - last) / 1000;
+        if (pos >= tracks[cur].dur) { cur = (cur + 1) % tracks.length; renderTrack(); }
+        else renderPos();
+      }
+      last = t;
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    $("play").addEventListener("click", function () {
+      playing = !playing;
+      this.textContent = playing ? "⏸" : "▶";
+      $("player").classList.toggle("playing", playing);
+    });
+    $("prev").addEventListener("click", () => { cur = (cur - 1 + tracks.length) % tracks.length; renderTrack(); });
+    $("next").addEventListener("click", () => { cur = (cur + 1) % tracks.length; renderTrack(); });
+    document.querySelector('input[type="range"]').addEventListener("input", e => {
+      pos = (e.target.value / 100) * tracks[cur].dur; renderPos();
+    });
+
+    // dark ambient toggle
+    $("modeToggle").addEventListener("click", () => document.body.classList.toggle("dark"));
+
+    // steps count-up
+    const steps = $("steps"), target = 8412, t0 = performance.now();
+    (function tick(t) {
+      const p = Math.min((t - t0 - 400) / 1400, 1);
+      if (p > 0) steps.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString();
+      if (p < 1) requestAnimationFrame(tick);
+    })(performance.now());
+  </script>
+</body>
+</html>

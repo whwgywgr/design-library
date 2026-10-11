@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLOK! — Neo-Brutalism</title>
+<style>
+  :root { --ink: #111; --cream: #f5f1e8; --lime: #b9ff66; --pink: #ff90e8; --cyan: #90e0ef; --yellow: #ffd43b; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--cream); color: var(--ink); }
+  ::selection { background: var(--lime); }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+  .logo { font-weight: 800; font-size: 21px; background: var(--pink); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink); padding: 4px 12px; transform: rotate(-2deg); }
+  .menu { display: flex; align-items: center; gap: 10px; }
+  .menu a { text-decoration: none; font-weight: 700; font-size: 13.5px; padding: 8px 14px; border: 3px solid var(--ink); background: #fff; box-shadow: 4px 4px 0 var(--ink); border-radius: 10px; transition: all 0.12s; }
+  .menu a:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+  .menu .cta { background: var(--yellow); }
+
+  header { padding: 60px 0 50px; position: relative; }
+  h1 { font-size: clamp(42px, 7.5vw, 78px); font-weight: 800; letter-spacing: -0.03em; line-height: 1.02; max-width: 760px; }
+  .hl { padding: 0 10px; border: 3px solid var(--ink); border-radius: 12px; display: inline-block; box-shadow: 5px 5px 0 var(--ink); }
+  .hl.lime { background: var(--lime); } .hl.pink { background: var(--pink); }
+  .sticker { position: absolute; top: 46px; right: 60px; width: 84px; height: 84px; display: grid; place-items: center; font-size: 40px; background: var(--cyan); border: 3px solid var(--ink); border-radius: 50%; box-shadow: 5px 5px 0 var(--ink); animation: spin 9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sub { margin: 24px 0 30px; font-size: 16.5px; font-weight: 500; color: #3d3a33; max-width: 480px; }
+  .btns { display: flex; gap: 14px; }
+  .big { font-weight: 800; font-size: 15px; padding: 13px 24px; border: 3px solid var(--ink); border-radius: 12px; cursor: pointer; box-shadow: 6px 6px 0 var(--ink); transition: all 0.12s; text-decoration: none; display: inline-block; }
+  .big.lime { background: var(--lime); } .big.plain { background: #fff; }
+  .big:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+  .big:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0 var(--ink); }
+
+  .marquee { background: var(--lime); border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); overflow: hidden; }
+  .marquee div { display: inline-flex; white-space: nowrap; padding: 11px 0; font-weight: 800; font-size: 13.5px; letter-spacing: 0.1em; text-transform: uppercase; animation: slide 16s linear infinite; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 60px 0; }
+  .card { border: 3px solid var(--ink); border-radius: 14px; padding: 24px 22px 28px; box-shadow: 6px 6px 0 var(--ink); transition: all 0.15s; }
+  .card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--ink); }
+  .card .ic { width: 54px; height: 54px; border: 3px solid var(--ink); border-radius: 12px; display: grid; place-items: center; font-size: 25px; margin-bottom: 16px; }
+  .card h3 { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+  .card p { font-size: 13.5px; line-height: 1.65; font-weight: 500; color: #3d3a33; }
+  .card.pink { background: var(--pink); } .card.cyan { background: var(--cyan); } .card.yell { background: var(--yellow); }
+  .card .ic { background: #fff; }
+
+  .faq { padding: 10px 0 70px; }
+  .faq h2 { font-size: clamp(26px, 4vw, 38px); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 24px; }
+  .q { border: 3px solid var(--ink); border-radius: 12px; background: #fff; margin-bottom: 14px; box-shadow: 5px 5px 0 var(--ink); overflow: hidden; }
+  .q > button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 0; background: none; font: inherit; font-weight: 800; font-size: 15.5px; padding: 16px 18px; cursor: pointer; text-align: left; }
+  .q .plus { font-size: 22px; transition: transform 0.25s; flex: none; }
+  .q.open .plus { transform: rotate(45deg); }
+  .q .a { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .q.open .a { max-height: 200px; }
+  .q .a p { padding: 0 18px 16px; font-size: 13.5px; line-height: 1.7; font-weight: 500; color: #3d3a33; }
+  .q:nth-child(1) > button { background: var(--pink); }
+  .q:nth-child(2) > button { background: var(--cyan); }
+  .q:nth-child(3) > button { background: var(--yellow); }
+
+  footer { background: var(--ink); color: var(--cream); padding: 34px 0; }
+  footer .wrap { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+  footer .flogo { font-weight: 800; font-size: 19px; background: var(--lime); color: var(--ink); padding: 3px 10px; border-radius: 8px; transform: rotate(-2deg); display: inline-block; }
+  footer small { font-size: 12px; opacity: 0.75; }
+
+  @media (max-width: 740px) { .cards { grid-template-columns: 1fr; } .sticker { display: none; } .menu a:not(.cta) { display: none; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <div class="logo">BLOK!</div>
+      <div class="menu">
+        <a href="#">Work</a><a href="#">About</a>
+        <a class="cta" href="#">Hire us ↗</a>
+      </div>
+    </nav>
+
+    <header>
+      <div class="sticker">✺</div>
+      <h1>We make websites<br>that look like <span class="hl lime">this</span><br>on <span class="hl pink">purpose.</span></h1>
+      <p class="sub">BLOK! is a two-person studio in Johor Bahru building loud, honest, slightly unhinged websites for brands with taste.</p>
+      <div class="btns">
+        <a class="big lime" href="#">See the work</a>
+        <a class="big plain" href="#">Our manifesto</a>
+      </div>
+    </header>
+  </div>
+
+  <div class="marquee"><div>
+    ✦ NO TEMPLATES ✦ NO GRADIENTS ✦ NO APOLOGIES ✦ BORDER ON EVERYTHING ✦ COLOUR ON EVERYTHING ELSE ✦&nbsp;
+    ✦ NO TEMPLATES ✦ NO GRADIENTS ✦ NO APOLOGIES ✦ BORDER ON EVERYTHING ✦ COLOUR ON EVERYTHING ELSE ✦&nbsp;
+  </div></div>
+
+  <div class="wrap">
+    <div class="cards">
+      <div class="card pink"><div class="ic">⚡</div><h3>Fast by default</h3><p>No frameworks, no build step, no 4MB of JavaScript. Just HTML, CSS and a sprinkle of vanilla JS.</p></div>
+      <div class="card cyan"><div class="ic">🎯</div><h3>Opinionated</h3><p>We will tell you your idea is bad before your users do. That is what you are paying for.</p></div>
+      <div class="card yell"><div class="ic">🧃</div><h3>Fun to use</h3><p>If a website feels like filling out a form at the bank, we have already failed. Play is a feature.</p></div>
+    </div>
+
+    <div class="faq">
+      <h2>Questions? Good.</h2>
+      <div class="q open">
+        <button>Is this style actually usable? <span class="plus">+</span></button>
+        <div class="a"><p>Yes — borders and colour do the hierarchy work that subtle shadows normally do. Contrast is high, targets are big, and nothing important is hidden.</p></div>
+      </div>
+      <div class="q">
+        <button>Why not just use a gradient like everyone else? <span class="plus">+</span></button>
+        <div class="a"><p>Because gradients whisper and blocks shout. Your brand deserves a website people screenshot and send to their friends.</p></div>
+      </div>
+      <div class="q">
+        <button>How much does a site like this cost? <span class="plus">+</span></button>
+        <div class="a"><p>Less than you spent on the logo nobody can read. Every project is quoted flat — no hourly billing, no surprises.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="wrap"><span class="flogo">BLOK!</span><small>© 2026 Blok Studio JB — borders on everything, colour on everything else.</small></div></footer>
+
+  <script>
+    document.querySelectorAll('.q > button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.parentElement;
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.q').forEach(q => q.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+      });
+    });
+  </script>
+</body>
+</html>

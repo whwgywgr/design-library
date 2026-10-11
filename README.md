@@ -92,7 +92,7 @@ node build.js        # or just run start.bat
 
 ## Currently in the library
 
-**10 style showcases** — one self-contained reference page per popular design style, all
+**15 style showcases** — one self-contained reference page per popular design style, all
 pure HTML/CSS/JS with zero dependencies:
 
 | # | Design | Style |
@@ -110,6 +110,8 @@ pure HTML/CSS/JS with zero dependencies:
 | 11 | Classic Web 2.0 — 2005 Portal | gradient header, glossy buttons, working poll |
 | 12 | Metro — Windows 8 Tiles | solid live tiles, no borders, sideways scroll |
 | 13 | Flat Design — Material Era | app bar, hamburger drawer, ripple buttons, FAB, snackbar |
+| 14 | Neumorphism — Soft UI Player | extruded monochrome soft shadows, working player |
+| 15 | Neo-Brutalism — Modern Landing | cream + candy colour blocks, FAQ accordion |
 
 An earlier sample collection (Emas landing page, LinkHub, design links, todo-list spec)
 still exists in the git history — see the initial commits if you ever want to restore it.
