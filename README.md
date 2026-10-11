@@ -92,13 +92,13 @@ node build.js        # or just run start.bat
 
 ## Currently in the library
 
-| Entry | Type | Source |
-|---|---|---|
-| Emas Public Gold — Landing Page | code | workspace root (`../`) |
-| LinkHub — Project Link Saver | code | `../linkhub` |
-| Pricing Section — Light Component | code | `designs/pricing-section/` |
-| Todo List App — Design Spec | docs | `../thetodolist/DESIGN.md` |
-| Dribbble · Land-book · Mobbin · Godly · Awwwards | links | external |
+**Empty** — a clean slate. Add your first design with the **Add design** button (saved in
+your browser, then **Export for build** + `imported/` + `node build.js` to make it permanent),
+or register existing projects in `library.json`.
+
+The original sample collection (Emas landing page, LinkHub, pricing section, design links,
+todo-list spec) still exists in the git history — see the initial commits if you ever want
+to restore it.
 
 ## Notes
 

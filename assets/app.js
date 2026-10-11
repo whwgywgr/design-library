@@ -309,7 +309,10 @@
       }).join("") +
       '<span class="toolbar-meta">' + items.length + " design" + (items.length === 1 ? "" : "s") + "</span></div>";
 
-    if (!items.length) {
+    if (!DESIGNS.length) {
+      html += '<div class="empty">' + I.folder +
+        "<h3>No designs yet</h3><p>Click <b>Add design</b> to create your first one — or drop a <b>.html</b> file anywhere on this page.</p></div>";
+    } else if (!items.length) {
       html += '<div class="empty">' + I.search +
         "<h3>Nothing found</h3><p>Try a different search or tag.</p></div>";
     } else {
