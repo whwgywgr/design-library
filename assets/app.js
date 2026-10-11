@@ -484,12 +484,14 @@
       }, { rootMargin: "260px" });
       var far = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
+          // unmount only when the card is several screens away (~2600px) —
+          // invisible in normal use, but caps runaway CPU on very long scrolls
           if (!en.isIntersecting) {
             var item = boxes.filter(function (b) { return b.box === en.target; })[0];
             if (item) unmount(item);
           }
         });
-      }, { rootMargin: "-460px 0px -460px 0px" });
+      }, { rootMargin: "2600px 0px 2600px 0px" });
       boxes.forEach(function (b) { near.observe(b.box); far.observe(b.box); });
     } else {
       boxes.forEach(function (b) { mount(b); });
