@@ -617,8 +617,10 @@
       "</div>" +
       '<div class="form-col"><div class="pv-box">' +
       '<div class="pv-label">' + I.eye + " Live preview</div>" +
+      '<div class="pv-stage">' +
       '<iframe class="pv-frame" id="fPreview" title="Live preview"></iframe>' +
-      "</div></div>" +
+      '<div class="pv-empty" id="fPreviewEmpty">The live preview appears here.<br>Start by pasting your code into the <b>HTML</b> field above.</div>' +
+      "</div></div></div>" +
       "</div>" +
       '<div class="form-actions">' +
       '<button class="btn btn-primary" id="fSave">' + (isEdit ? "Save changes" : "Add to library") + "</button>" +
@@ -642,29 +644,66 @@
         else if (/\.html?$/i.test(f.path)) fHtml.value = f.content;
       });
       if (existing.docs) fMd.value = existing.docs.raw || existing.docs.body || "";
-    } else if (prefill) {
-      if (prefill.html) fHtml.value = prefill.html;
-      if (prefill.css) fCss.value = prefill.css;
-      if (prefill.js) fJs.value = prefill.js;
-      if (prefill.markdown) fMd.value = prefill.markdown;
-      if (prefill.title) fTitle.value = prefill.title;
-      if (prefill.link) fLink.value = prefill.link;
+    } else {
+      // restore an unsaved draft, if there is one
+      var draft = null;
+      try { draft = JSON.parse(localStorage.getItem("designlib.formDraft") || "null"); } catch (e) { draft = null; }
+      if (draft) {
+        fTitle.value = draft.title || "";
+        fDesc.value = draft.description || "";
+        fTags.value = draft.tags || "";
+        fLink.value = draft.link || "";
+        fHtml.value = draft.html || "";
+        fCss.value = draft.css || "";
+        fJs.value = draft.js || "";
+        fMd.value = draft.md || "";
+        if (draft.title || draft.html || draft.css || draft.js || draft.md) toast("Unsaved draft restored", 2500);
+      }
+      if (prefill) {
+        if (prefill.html) fHtml.value = prefill.html;
+        if (prefill.css) fCss.value = prefill.css;
+        if (prefill.js) fJs.value = prefill.js;
+        if (prefill.markdown) fMd.value = prefill.markdown;
+        if (prefill.title) fTitle.value = prefill.title;
+        if (prefill.link) fLink.value = prefill.link;
+      }
+    }
+
+    // keep an automatic draft so an accidental close never loses work
+    var draftTimer = null;
+    function saveDraft() {
+      if (isEdit) return;
+      try {
+        localStorage.setItem("designlib.formDraft", JSON.stringify({
+          title: fTitle.value, description: fDesc.value, tags: fTags.value,
+          link: fLink.value, html: fHtml.value, css: fCss.value, js: fJs.value, md: fMd.value
+        }));
+      } catch (e) { /* storage full or blocked */ }
+    }
+    function clearDraft() {
+      try { localStorage.removeItem("designlib.formDraft"); } catch (e) { /* noop */ }
     }
 
     function updatePreview() {
-      if (!fHtml.value.trim()) { pv.srcdoc = ""; return; }
-      pv.srcdoc = buildPreviewHtml(fHtml.value,
+      var empty = !fHtml.value.trim();
+      pv.srcdoc = empty ? "" : buildPreviewHtml(fHtml.value,
         fCss.value.trim() ? [{ name: "style.css", content: fCss.value }] : [],
         fJs.value.trim() ? [{ name: "script.js", content: fJs.value }] : []);
+      var ph = $("#fPreviewEmpty", bd);
+      if (ph) ph.style.display = empty ? "flex" : "none";
     }
     var pvTimer = null;
     function queuePreview() {
       clearTimeout(pvTimer);
       pvTimer = setTimeout(updatePreview, 400);
     }
-    fHtml.addEventListener("input", queuePreview);
-    fCss.addEventListener("input", queuePreview);
-    fJs.addEventListener("input", queuePreview);
+    [fTitle, fDesc, fTags, fLink, fHtml, fCss, fJs, fMd].forEach(function (el) {
+      el.addEventListener("input", function () {
+        queuePreview();
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(saveDraft, 500);
+      });
+    });
     updatePreview();
 
     function close() { bd.remove(); document.removeEventListener("keydown", onKey); }
@@ -747,6 +786,7 @@
       }
       persistLocal();
       refreshDesigns();
+      clearDraft();
       close();
       toast(isEdit ? "Design updated" : "Design added to your library");
       var target = "#/d/" + encodeURIComponent(record.id);
