@@ -144,12 +144,61 @@
     });
   }
 
-  function buildPreviewHtml(html) {
+  function isExternalRef(u) {
+    return /^(https?:)?\/\//i.test(u) || /^(data:|#|mailto:|javascript:)/i.test(u);
+  }
+
+  /* Build a self-contained preview document: swaps local <link>/<script src>
+     tags for the provided separate CSS/JS files, and injects any that were
+     never referenced, so separate or single-file designs both render. */
+  function buildPreviewHtml(html, cssFiles, jsFiles) {
     var doc = String(html || "");
+    cssFiles = cssFiles || [];
+    jsFiles = jsFiles || [];
+    var usedCss = [], usedJs = [];
+
+    doc = doc.replace(/<link\b[^>]*>/gi, function (tag) {
+      if (!/stylesheet/i.test(tag)) return tag;
+      var m = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+      if (!m || isExternalRef(m[1])) return tag;
+      var base = m[1].split("?")[0].split("/").pop().toLowerCase();
+      for (var i = 0; i < cssFiles.length; i++) {
+        if (cssFiles[i].name.toLowerCase() === base && usedCss.indexOf(cssFiles[i]) === -1) {
+          usedCss.push(cssFiles[i]);
+          return "<style>\n" + cssFiles[i].content + "\n</style>";
+        }
+      }
+      return tag;
+    });
+
+    doc = doc.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, function (tag, src) {
+      if (isExternalRef(src)) return tag;
+      var base = src.split("?")[0].split("/").pop().toLowerCase();
+      for (var j = 0; j < jsFiles.length; j++) {
+        if (jsFiles[j].name.toLowerCase() === base && usedJs.indexOf(jsFiles[j]) === -1) {
+          usedJs.push(jsFiles[j]);
+          return "<script>\n" + jsFiles[j].content.replace(/<\/script/gi, "<\\/script") + "\n<\/script>";
+        }
+      }
+      return tag;
+    });
+
+    var styleBlock = cssFiles.filter(function (c) { return usedCss.indexOf(c) === -1; })
+      .map(function (c) { return "<style>\n" + c.content + "\n</style>"; }).join("\n");
+    var scriptBlock = jsFiles.filter(function (j) { return usedJs.indexOf(j) === -1; })
+      .map(function (j) { return "<script>\n" + j.content.replace(/<\/script/gi, "<\\/script") + "\n<\/script>"; }).join("\n");
+
+    var inject = PREVIEW_SHIM + (styleBlock ? "\n" + styleBlock : "");
     if (/<head[^>]*>/i.test(doc)) {
-      return doc.replace(/<head([^>]*)>/i, function (m) { return m + PREVIEW_SHIM; });
+      doc = doc.replace(/<head([^>]*)>/i, function (m) { return m + inject; });
+    } else {
+      doc = inject + doc;
     }
-    return PREVIEW_SHIM + doc;
+    if (scriptBlock) {
+      if (/<\/body>/i.test(doc)) doc = doc.replace(/<\/body>/i, scriptBlock + "\n</body>");
+      else doc += scriptBlock;
+    }
+    return doc;
   }
 
   /* ---------- icons ---------- */
@@ -557,10 +606,14 @@
       '<div class="field-row"><label>Short description</label><input type="text" id="fDesc" placeholder="One line shown on the card"></div>' +
       '<div class="field-row"><label>Tags <span class="ft-hint">comma separated</span></label><input type="text" id="fTags" placeholder="landing, component, dashboard"></div>' +
       '<div class="field-row"><label>Source website <span class="ft-hint">optional</span></label><input type="url" id="fLink" placeholder="https://…"></div>' +
-      '<div class="field-row"><label>Full HTML code <span class="ft-hint">single file with inline CSS/JS previews best</span></label>' +
-      '<textarea id="fHtml" rows="9" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt; …paste your full code, or drop a .html file anywhere…"></textarea></div>' +
+      '<div class="field-row"><label>HTML <span class="ft-hint">index.html — the page markup</span></label>' +
+      '<textarea id="fHtml" rows="8" spellcheck="false" placeholder="&lt;!DOCTYPE html&gt; …paste your code, or drop .html / .css / .js files anywhere…"></textarea></div>' +
+      '<div class="field-row"><label>CSS <span class="ft-hint">optional — separate style.css</span></label>' +
+      '<textarea id="fCss" rows="5" spellcheck="false" placeholder="/* leave empty if your CSS is already inline in the HTML */"></textarea></div>' +
+      '<div class="field-row"><label>JavaScript <span class="ft-hint">optional — separate script.js</span></label>' +
+      '<textarea id="fJs" rows="5" spellcheck="false" placeholder="// leave empty if your JS is already inline in the HTML"></textarea></div>' +
       '<div class="field-row"><label>Design doc <span class="ft-hint">optional markdown, becomes design.md</span></label>' +
-      '<textarea id="fMd" rows="5" spellcheck="false" placeholder="# My Design&#10;- palette, typography, structure…"></textarea></div>' +
+      '<textarea id="fMd" rows="4" spellcheck="false" placeholder="# My Design&#10;- palette, typography, structure…"></textarea></div>' +
       "</div>" +
       '<div class="form-col"><div class="pv-box">' +
       '<div class="pv-label">' + I.eye + " Live preview</div>" +
@@ -575,31 +628,43 @@
     document.body.appendChild(bd);
 
     var fTitle = $("#fTitle", bd), fDesc = $("#fDesc", bd), fTags = $("#fTags", bd),
-      fLink = $("#fLink", bd), fHtml = $("#fHtml", bd), fMd = $("#fMd", bd),
-      pv = $("#fPreview", bd);
+      fLink = $("#fLink", bd), fHtml = $("#fHtml", bd), fCss = $("#fCss", bd),
+      fJs = $("#fJs", bd), fMd = $("#fMd", bd), pv = $("#fPreview", bd);
 
     if (isEdit) {
       fTitle.value = existing.title;
       fDesc.value = existing.description || "";
       fTags.value = (existing.tags || []).join(", ");
       fLink.value = existing.link || "";
-      if (existing.files && existing.files[0]) fHtml.value = existing.files[0].content;
+      (existing.files || []).forEach(function (f) {
+        if (f.lang === "css") fCss.value = f.content;
+        else if (f.lang === "javascript") fJs.value = f.content;
+        else if (/\.html?$/i.test(f.path)) fHtml.value = f.content;
+      });
       if (existing.docs) fMd.value = existing.docs.raw || existing.docs.body || "";
     } else if (prefill) {
       if (prefill.html) fHtml.value = prefill.html;
+      if (prefill.css) fCss.value = prefill.css;
+      if (prefill.js) fJs.value = prefill.js;
       if (prefill.markdown) fMd.value = prefill.markdown;
       if (prefill.title) fTitle.value = prefill.title;
       if (prefill.link) fLink.value = prefill.link;
     }
 
     function updatePreview() {
-      pv.srcdoc = fHtml.value.trim() ? buildPreviewHtml(fHtml.value) : "";
+      if (!fHtml.value.trim()) { pv.srcdoc = ""; return; }
+      pv.srcdoc = buildPreviewHtml(fHtml.value,
+        fCss.value.trim() ? [{ name: "style.css", content: fCss.value }] : [],
+        fJs.value.trim() ? [{ name: "script.js", content: fJs.value }] : []);
     }
     var pvTimer = null;
-    fHtml.addEventListener("input", function () {
+    function queuePreview() {
       clearTimeout(pvTimer);
       pvTimer = setTimeout(updatePreview, 400);
-    });
+    }
+    fHtml.addEventListener("input", queuePreview);
+    fCss.addEventListener("input", queuePreview);
+    fJs.addEventListener("input", queuePreview);
     updatePreview();
 
     function close() { bd.remove(); document.removeEventListener("keydown", onKey); }
@@ -613,7 +678,7 @@
     var fi = document.createElement("input");
     fi.type = "file";
     fi.multiple = true;
-    fi.accept = ".html,.htm,.md,.markdown,.txt";
+    fi.accept = ".html,.htm,.css,.js,.md,.markdown,.txt";
     fi.style.display = "none";
     bd.appendChild(fi);
     $("#fImport", bd).addEventListener("click", function () { fi.click(); });
@@ -624,9 +689,16 @@
       files.forEach(function (file) {
         readFileAsText(file).then(function (text) {
           if (text) {
-            if (/\.html?$/.test(file.name.toLowerCase())) {
+            var nm = file.name.toLowerCase();
+            if (/\.html?$/.test(nm)) {
               fHtml.value = text;
               if (!fTitle.value.trim()) fTitle.value = file.name.replace(/\.[^.]+$/, "");
+              updatePreview();
+            } else if (/\.css$/.test(nm)) {
+              fCss.value = text;
+              updatePreview();
+            } else if (/\.js$/.test(nm)) {
+              fJs.value = text;
               updatePreview();
             } else {
               fMd.value = text;
@@ -640,10 +712,16 @@
     $("#fSave", bd).addEventListener("click", function () {
       var title = fTitle.value.trim();
       var html = fHtml.value;
+      var css = fCss.value;
+      var js = fJs.value;
       var md = fMd.value;
       var link = fLink.value.trim();
       if (!title) { fTitle.focus(); toast("Give the design a title"); return; }
       if (!html.trim() && !md.trim() && !link) { fHtml.focus(); toast("Paste HTML code, markdown, or add a link"); return; }
+      var files = [];
+      if (html.trim()) files.push({ path: "index.html", lang: "html", content: html });
+      if (css.trim()) files.push({ path: "style.css", lang: "css", content: css });
+      if (js.trim()) files.push({ path: "script.js", lang: "javascript", content: js });
       var record = {
         id: isEdit ? existing.id : uniqueId(slugify(title)),
         title: title,
@@ -653,8 +731,13 @@
         link: link || null,
         updated: new Date().toISOString(),
         local: true,
-        files: html.trim() ? [{ path: "index.html", lang: "html", content: html }] : [],
-        preview: html.trim() ? { file: "index.html", html: buildPreviewHtml(html) } : null,
+        files: files,
+        preview: html.trim() ? {
+          file: "index.html",
+          html: buildPreviewHtml(html,
+            css.trim() ? [{ name: "style.css", content: css }] : [],
+            js.trim() ? [{ name: "script.js", content: js }] : [])
+        } : null,
         docs: md.trim() ? { file: "design.md", raw: md, body: stripFrontmatter(md) } : null
       };
       if (isEdit) {
@@ -671,6 +754,13 @@
     });
   }
 
+  function pickFile(d, lang) {
+    var f = (d.files || []).filter(function (x) {
+      return x.lang === lang || (lang === "html" && /\.html?$/i.test(x.path));
+    })[0];
+    return f ? f.content : null;
+  }
+
   function exportLocalDesign(d) {
     var payload = {
       version: 1,
@@ -680,7 +770,9 @@
       description: d.description || "",
       tags: d.tags || [],
       link: d.link || null,
-      html: d.files && d.files[0] ? d.files[0].content : null,
+      html: pickFile(d, "html"),
+      css: pickFile(d, "css"),
+      js: pickFile(d, "javascript"),
       markdown: d.docs ? (d.docs.raw || d.docs.body) : null
     };
     download("imported-" + d.id + ".json", JSON.stringify(payload, null, 2), "application/json");
@@ -740,9 +832,14 @@
     }
     list.forEach(function (file) {
       readFileAsText(file).then(function (text) {
-        if (/\.html?$/.test(file.name.toLowerCase())) {
+        var nm = file.name.toLowerCase();
+        if (/\.html?$/.test(nm)) {
           prefill.html = text;
           if (!prefill.title) prefill.title = file.name.replace(/\.[^.]+$/, "");
+        } else if (/\.css$/.test(nm)) {
+          prefill.css = text;
+        } else if (/\.js$/.test(nm)) {
+          prefill.js = text;
         } else {
           prefill.markdown = text;
         }
@@ -755,7 +852,7 @@
 
   var GUIDE_HTML =
     "<h4>Fastest — right here, saved in this browser</h4>" +
-    "<p>Click <code>Add design</code>, paste your full HTML (plus an optional markdown doc), and save. It appears in the library instantly. Designs added this way live in your browser's storage; to make one permanent for everyone, open it and press <b>Export for build</b>, drop the downloaded <code>imported-&lt;id&gt;.json</code> into <code>design-library/imported/</code>, then run <code>node build.js</code>. You can also just drag &amp; drop a <code>.html</code> or <code>.md</code> file anywhere on this page.</p>" +
+    "<p>Click <code>Add design</code>, paste your HTML — plus separate CSS and JavaScript files if you have them, and an optional markdown doc — then save. It appears in the library instantly. Designs added this way live in your browser's storage; to make one permanent for everyone, open it and press <b>Export for build</b>, drop the downloaded <code>imported-&lt;id&gt;.json</code> into <code>design-library/imported/</code>, then run <code>node build.js</code>. You can also drag &amp; drop <code>.html</code>, <code>.css</code>, <code>.js</code> or <code>.md</code> files anywhere on this page.</p>" +
     "<h4>Way 1 — a design folder <code>designs/&lt;slug&gt;/</code></h4>" +
     "<p>Create a folder with your design document and a self-contained page. The build picks it up automatically:</p>" +
     "<pre>designs/my-design/\n" +

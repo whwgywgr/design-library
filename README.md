@@ -36,7 +36,7 @@ design-library/
 
 ### Fastest — the Add design form (in the site)
 
-Click **Add design**, fill in title/tags, paste your full HTML (and optionally a markdown doc) — the live preview renders while you type. You can also **drag & drop** a `.html` / `.md` file anywhere on the page, or use **Import files**.
+Click **Add design**, fill in title/tags, then paste your code — a single self-contained HTML, **or separate HTML / CSS / JS** in their own fields (the live preview inlines them automatically, referenced via `<link>`/`<script>` or not). Optionally add a markdown design doc. You can also **drag & drop** `.html` / `.css` / `.js` / `.md` files anywhere on the page, or use **Import files**.
 
 Saved designs appear instantly and are stored in the **browser's localStorage** — perfect for an MVP / personal use. On each locally-added design's page you get **Edit**, **Delete**, and:
 

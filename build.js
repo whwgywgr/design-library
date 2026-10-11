@@ -274,18 +274,69 @@ function processFolderDesign(slug) {
   };
 }
 
+/* Compose a self-contained preview from separate html/css/js strings
+   (used for imported/<name>.json exports from the website form). */
+function composeImportedPreview(html, css, js) {
+  let doc = String(html || "");
+  const used = { css: false, js: false };
+
+  if (css && String(css).trim()) {
+    const styleBlock = "<style>\n" + css + "\n</style>";
+    doc = doc.replace(/<link\b[^>]*>/gi, function (tag) {
+      if (!/stylesheet/i.test(tag) || used.css) return tag;
+      const m = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+      if (!m || isExternal(m[1])) return tag;
+      const base = m[1].split("?")[0].split("/").pop().toLowerCase();
+      if (base !== "style.css") return tag;
+      used.css = true;
+      return styleBlock;
+    });
+  }
+  if (js && String(js).trim()) {
+    const scriptBlock = "<script>\n" + String(js).replace(/<\/script/gi, "<\\/script") + "\n<\/script>";
+    doc = doc.replace(/<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>\s*<\/script>/gi, function (tag, src) {
+      if (used.js || isExternal(src)) return tag;
+      const base = src.split("?")[0].split("/").pop().toLowerCase();
+      if (base !== "script.js") return tag;
+      used.js = true;
+      return scriptBlock;
+    });
+  }
+
+  const styleBlock = css && String(css).trim() && !used.css ? "<style>\n" + css + "\n</style>" : "";
+  const scriptBlock = js && String(js).trim() && !used.js
+    ? "<script>\n" + String(js).replace(/<\/script/gi, "<\\/script") + "\n<\/script>" : "";
+
+  const inject = SHIM + (styleBlock ? "\n" + styleBlock : "");
+  if (/<head[^>]*>/i.test(doc)) doc = doc.replace(/<head([^>]*)>/i, function (m) { return m + inject; });
+  else doc = inject + doc;
+  if (scriptBlock) {
+    if (/<\/body>/i.test(doc)) doc = doc.replace(/<\/body>/i, scriptBlock + "\n</body>");
+    else doc += scriptBlock;
+  }
+  return doc;
+}
+
 /* exported from the website's Add-design form (dropped into imported/<name>.json) */
 function processImported(data, fileName) {
   if (!data || typeof data !== "object") { warn("imported/" + fileName + " — not an object"); return null; }
+  const fileDefs = [
+    ["index.html", "html", data.html],
+    ["style.css", "css", data.css],
+    ["script.js", "javascript", data.js]
+  ];
   const files = [];
-  let previewRec = null, docs = null;
-  if (data.html && String(data.html).trim()) {
-    files.push({ path: "index.html", lang: "html", content: String(data.html), _baseDir: ROOT, _mtime: new Date().toISOString() });
-    previewRec = files[0];
-  }
+  let htmlContent = null;
+  fileDefs.forEach(function (def) {
+    if (def[2] && String(def[2]).trim()) {
+      files.push({ path: def[0], lang: def[1], content: String(def[2]), _baseDir: ROOT, _mtime: new Date().toISOString() });
+      if (def[1] === "html") htmlContent = String(def[2]);
+    }
+  });
+  let docs = null;
   if (data.markdown && String(data.markdown).trim()) docs = makeDocs("design.md", String(data.markdown));
-  if (!previewRec && !docs && !data.link) { warn("imported/" + fileName + " — has no html, markdown or link"); return null; }
-  const type = previewRec ? "code" : (docs ? "docs" : "link");
+  if (!htmlContent && !docs && !data.link) { warn("imported/" + fileName + " — has no html, markdown or link"); return null; }
+  const type = htmlContent ? "code" : (docs ? "docs" : "link");
   const id = data.id || path.basename(fileName, ".json");
   return {
     id: id,
@@ -297,7 +348,10 @@ function processImported(data, fileName) {
     updated: data.exportedAt || new Date().toISOString(),
     docs: docs ? { file: docs.file, raw: docs.raw, body: docs.body } : null,
     files: files.map(function (f) { return { path: f.path, lang: f.lang, content: f.content }; }),
-    preview: previewRec ? { file: previewRec.path, html: buildPreviewHtml(previewRec) } : null,
+    preview: htmlContent ? {
+      file: "index.html",
+      html: composeImportedPreview(htmlContent, data.css, data.js)
+    } : null,
     _order: data.order != null ? data.order : 3
   };
 }
