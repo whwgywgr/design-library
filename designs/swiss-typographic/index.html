@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>grid. — Swiss Typographic</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; background: #fff; color: #111; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; position: relative; }
+  .label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #111; font-weight: 500; }
+  .mut { color: #777; }
+
+  .meta { display: flex; justify-content: space-between; padding: 18px 0 10px; border-bottom: 2px solid #111; }
+  .hero { padding: 80px 0 70px; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end; }
+  h1 { font-size: clamp(64px, 12vw, 150px); font-weight: 700; letter-spacing: -0.045em; line-height: 0.9; }
+  h1 .dot { color: #e30613; }
+  .redsq { width: 110px; height: 110px; background: #e30613; margin-bottom: 8px; }
+  .spec { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 26px 0 60px; }
+  .spec .cell { border-top: 1px solid #111; padding-top: 12px; }
+  .spec .cell .label { display: block; margin-bottom: 8px; }
+  .spec .cell p { font-size: 13.5px; line-height: 1.7; color: #333; }
+
+  .index { border-top: 2px solid #111; }
+  .ix { display: grid; grid-template-columns: 110px 1fr auto; gap: 24px; align-items: baseline; padding: 22px 0; border-bottom: 1px solid #ddd; transition: padding-left 0.2s; cursor: default; }
+  .ix:hover { padding-left: 12px; }
+  .ix:hover .no { color: #e30613; }
+  .ix .no { font-size: 54px; font-weight: 700; letter-spacing: -0.03em; transition: color 0.2s; }
+  .ix h3 { font-size: 19px; font-weight: 700; letter-spacing: -0.01em; }
+  .ix p { font-size: 13px; color: #777; margin-top: 4px; }
+  .ix .yr { font-size: 12px; color: #777; }
+
+  .grid-overlay { position: fixed; inset: 0; z-index: 90; pointer-events: none; display: none; }
+  body.show-grid .grid-overlay { display: block; }
+  .grid-overlay .inner { max-width: 1040px; height: 100%; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+  .grid-overlay .col { background: rgba(227, 6, 19, 0.07); border-left: 1px solid rgba(227, 6, 19, 0.25); border-right: 1px solid rgba(227, 6, 19, 0.25); }
+
+  .tip { margin: 20px 0 60px; font-size: 12px; color: #777; }
+  .tip kbd { border: 1px solid #bbb; border-radius: 4px; padding: 1px 7px; font-family: inherit; font-size: 11px; background: #f6f6f6; }
+  footer { border-top: 2px solid #111; margin-top: 20px; }
+  footer .wrap { display: flex; justify-content: space-between; padding-top: 16px; padding-bottom: 40px; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #777; }
+
+  @media (max-width: 720px) { .hero { grid-template-columns: 1fr; } .spec { grid-template-columns: 1fr; } .ix { grid-template-columns: 70px 1fr; } .ix .yr { display: none; } }
+</style>
+</head>
+<body>
+  <div class="grid-overlay"><div class="inner"><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div><div class="col"></div></div></div>
+
+  <div class="wrap">
+    <div class="meta"><span class="label">International Typographic Style</span><span class="label mut">Zürich · 1957 / 2026</span></div>
+
+    <div class="hero">
+      <h1>grid<span class="dot">.</span></h1>
+      <div class="redsq"></div>
+    </div>
+
+    <div class="spec">
+      <div class="cell"><span class="label">Objective</span><p>Design is not art. Design is order in service of information. Every element sits where the grid says it must.</p></div>
+      <div class="cell"><span class="label">Method</span><p>One typeface. One accent. Twelve columns. Reduce until nothing false remains, then reduce once more.</p></div>
+      <div class="cell"><span class="label">Result</span><p>A page that reads the same in 1957 and 2026 — because clarity never goes out of fashion.</p></div>
+    </div>
+
+    <div class="index">
+      <div class="ix"><span class="no">01</span><div><h3>Typography is the grid</h3><p>Set the type correctly and the layout designs itself.</p></div><span class="yr">1957</span></div>
+      <div class="ix"><span class="no">02</span><div><h3>White space is structure</h3><p>Emptiness carries as much information as ink.</p></div><span class="yr">1962</span></div>
+      <div class="ix"><span class="no">03</span><div><h3>Red, used once</h3><p>A single accent earns attention; a dozen loses it.</p></div><span class="yr">1968</span></div>
+      <div class="ix"><span class="no">04</span><div><h3>Neutral, not boring</h3><p>The designer disappears so the content can appear.</p></div><span class="yr">2026</span></div>
+    </div>
+
+    <p class="tip">Press <kbd>G</kbd> to reveal the 12-column grid this page is built on.</p>
+  </div>
+
+  <footer><div class="wrap"><span>grid. — helvetica nowhere studio</span><span>47.3769° N, 8.5417° E</span></div></footer>
+
+  <script>
+    addEventListener("keydown", e => {
+      if ((e.key === "g" || e.key === "G") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+        document.body.classList.toggle("show-grid");
+      }
+    });
+  </script>
+</body>
+</html>

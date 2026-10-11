@@ -99,7 +99,7 @@ node build.js        # or just run start.bat
 
 ## Currently in the library
 
-**18 style showcases** — one self-contained reference page per popular design style, all
+**20 style showcases** — one self-contained reference page per popular design style, all
 pure HTML/CSS/JS with zero dependencies:
 
 | # | Design | Style |
@@ -122,6 +122,8 @@ pure HTML/CSS/JS with zero dependencies:
 | 16 | Candy Pop — Playful Shop | pastel-bright candy colours, confetti, cart counter |
 | 17 | Gradient Mesh — Vivid SaaS | animated multi-colour mesh, gradient text |
 | 18 | Memphis Pop — Festival Poster | 80s geometric shapes, live countdown |
+| 19 | Skeuomorphism — Classic Notes | linen desk, legal pad with push pin, gloss buttons |
+| 20 | Swiss — Typographic Grid | Helvetica grid, red accent, press G for grid |
 
 An earlier sample collection (Emas landing page, LinkHub, design links, todo-list spec)
 still exists in the git history — see the initial commits if you ever want to restore it.

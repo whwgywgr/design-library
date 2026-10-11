@@ -360,6 +360,53 @@ button {
 }
 .loading-big { text-align: center; color: var(--text-3); font-size: 13.5px; padding: 70px 0; }
 
+.card { position: relative; }
+.fav-star {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+  color: #c6c6cd;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s, color 0.15s;
+}
+.fav-star:hover { transform: scale(1.15); color: #f5a623; }
+.fav-star.on { color: #f5a623; }
+
+.pn-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 30px;
+  padding-top: 16px;
+}
+.pn {
+  text-decoration: none;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 13px;
+  border-radius: 9px;
+  max-width: 38%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.pn:hover { background: var(--accent-soft); color: var(--text); }
+.pn:last-child { text-align: right; }
+.pn-mid { color: var(--text-3); font-size: 12px; flex: none; }
+
 .card-body {
   padding: 14px 16px 15px;
   display: flex;

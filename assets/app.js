@@ -239,6 +239,18 @@
   function hasPreview(d) { return !!(d.preview || d.hasPreview); }
   function hasDocs(d) { return !!(d.docs || d.hasDocs); }
 
+  /* ---------- favourites ---------- */
+
+  var FAV_KEY = "designlib.favs";
+  function getFavs() { try { return JSON.parse(localStorage.getItem(FAV_KEY) || "[]"); } catch (e) { return []; } }
+  function isFav(id) { return getFavs().indexOf(id) !== -1; }
+  function toggleFav(id) {
+    var f = getFavs(), i = f.indexOf(id);
+    if (i === -1) f.push(id); else f.splice(i, 1);
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(f)); } catch (e) { /* noop */ }
+    return f.indexOf(id) !== -1;
+  }
+
   /* ---------- icons ---------- */
 
   var I = {
@@ -289,7 +301,8 @@
   function filtered() {
     var q = state.q.trim().toLowerCase();
     return DESIGNS.filter(function (d) {
-      if (state.tag !== "All" && (d.tags || []).indexOf(state.tag) === -1) return false;
+      if (state.tag === "__fav" && !isFav(d.id)) return false;
+      if (state.tag !== "All" && state.tag !== "__fav" && (d.tags || []).indexOf(state.tag) === -1) return false;
       if (!q) return true;
       var hay = (d.title + " " + (d.description || "") + " " + (d.tags || []).join(" ")).toLowerCase();
       return hay.indexOf(q) !== -1;
@@ -319,7 +332,9 @@
   }
 
   function cardHTML(d) {
+    var fav = isFav(d.id);
     return '<a class="card" href="#/d/' + encodeURIComponent(d.id) + '" data-id="' + esc(d.id) + '">' +
+      '<button class="fav-star' + (fav ? " on" : "") + '" data-fav="' + esc(d.id) + '" title="Favourite">' + (fav ? "★" : "☆") + "</button>" +
       cardPreview(d) +
       '<div class="card-body">' +
       '<h3 class="card-title">' + esc(d.title) + "</h3>" +
@@ -339,8 +354,10 @@
     var html =
       '<div class="container">' +
       '<div class="gallery-hero"><h1>Design Library</h1>' +
-      "<p>Your personal collection — open any design to see the live result, browse the full source code, read or download the design document, and visit the original site.</p></div>" +
+      "<p>Your personal collection — open any design to see the live result, browse the full source code, read or download the design document, and visit the original site.</p>" +
+      '<p style="margin-top:16px"><a class="btn btn-sm" id="surprise">🎲 Surprise me</a></p></div>' +
       '<div class="toolbar"><button class="chip' + (state.tag === "All" ? " active" : "") + '" data-tag="All">All <span class="chip-n">' + DESIGNS.length + "</span></button>" +
+      (getFavs().length ? '<button class="chip' + (state.tag === "__fav" ? " active" : "") + '" data-tag="__fav">★ Favourites <span class="chip-n">' + getFavs().length + "</span></button>" : "") +
       tags.map(function (t) {
         return '<button class="chip' + (state.tag === t.name ? " active" : "") + '" data-tag="' + esc(t.name) + '">' +
           esc(t.name) + ' <span class="chip-n">' + t.count + "</span></button>";
@@ -370,6 +387,29 @@
 
     // live card previews (lazy)
     if (items.length) attachCardPreviews(items);
+
+    // favourite stars on cards
+    $all(".fav-star").forEach(function (star) {
+      star.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var id = star.getAttribute("data-fav");
+        var hadFavs = getFavs().length > 0;
+        var on = toggleFav(id);
+        star.classList.toggle("on", on);
+        star.textContent = on ? "★" : "☆";
+        // refresh when the favourites chip must appear/disappear, or while inside it
+        if (state.tag === "__fav" || hadFavs !== (getFavs().length > 0)) renderGallery();
+      });
+    });
+
+    // surprise me
+    var sp = $("#surprise");
+    if (sp) sp.addEventListener("click", function () {
+      if (!DESIGNS.length) return;
+      var r = DESIGNS[Math.floor(Math.random() * DESIGNS.length)];
+      location.hash = "#/d/" + encodeURIComponent(r.id);
+    });
   }
 
   function attachCardPreviews(items) {
@@ -483,6 +523,8 @@
         '<button class="btn" data-act="export">' + I.download + "Export for build</button>" +
         '<button class="btn" data-act="delete">' + I.trash + "Delete</button>";
     }
+    actions += '<button class="btn" data-act="fav">' + (isFav(d.id) ? "★ Favourited" : "☆ Favourite") + "</button>" +
+      '<button class="btn" data-act="copy-link">' + I.link + "Copy link</button>";
 
     var tabs = "";
     if (d.type === "code") {
@@ -525,6 +567,27 @@
     if (actExport) actExport.addEventListener("click", function () { exportLocalDesign(d); });
     var actDelete = $('[data-act="delete"]');
     if (actDelete) actDelete.addEventListener("click", function () { deleteLocalDesign(d); });
+    var actFav = $('[data-act="fav"]');
+    if (actFav) actFav.addEventListener("click", function () {
+      var on = toggleFav(d.id);
+      actFav.textContent = on ? "★ Favourited" : "☆ Favourite";
+      toast(on ? "Added to favourites ★" : "Removed from favourites");
+    });
+    var actLink = $('[data-act="copy-link"]');
+    if (actLink) actLink.addEventListener("click", function () { copyText(location.href, "Link copied to clipboard"); });
+
+    // prev / next navigation within the current gallery order
+    var idx = DESIGNS.indexOf(d);
+    if (idx !== -1 && DESIGNS.length > 1) {
+      var prev = DESIGNS[(idx - 1 + DESIGNS.length) % DESIGNS.length];
+      var next = DESIGNS[(idx + 1) % DESIGNS.length];
+      var nav = document.createElement("div");
+      nav.className = "pn-nav";
+      nav.innerHTML = '<a class="pn" href="#/d/' + encodeURIComponent(prev.id) + '">‹ ' + esc(prev.title) + "</a>" +
+        '<span class="pn-mid">' + (idx + 1) + " / " + DESIGNS.length + "</span>" +
+        '<a class="pn" href="#/d/' + encodeURIComponent(next.id) + '">' + esc(next.title) + " ›</a>";
+      document.querySelector(".detail").appendChild(nav);
+    }
 
     // tabs
     var active = d.type === "code" ? (hasPreview(d) ? "preview" : "code") : (hasDocs(d) ? "docs" : null);
@@ -1039,6 +1102,17 @@
           !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
         e.preventDefault();
         $("#searchInput").focus();
+        return;
+      }
+      // ← → walk between designs while on a detail page
+      if (location.hash.indexOf("#/d/") === 0 && !/INPUT|TEXTAREA/.test(document.activeElement.tagName) &&
+          (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+        var cur = byId(decodeURIComponent(location.hash.slice(4)));
+        var i = DESIGNS.indexOf(cur);
+        if (i === -1) return;
+        e.preventDefault();
+        var j = e.key === "ArrowLeft" ? (i - 1 + DESIGNS.length) % DESIGNS.length : (i + 1) % DESIGNS.length;
+        location.hash = "#/d/" + encodeURIComponent(DESIGNS[j].id);
       }
     });
 

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notes — Skeuomorphism</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background-color: #b8c2d0;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.07) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 4px);
+    min-height: 100vh; padding: 26px 16px 46px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .app { width: 100%; max-width: 900px; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 24px 70px rgba(20, 30, 50, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(20, 30, 50, 0.6); }
+
+  /* dark gloss title bar */
+  .topbar { background: linear-gradient(180deg, #5a6c8c, #39485f 50%, #2c3a4e);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35); padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; }
+  .topbar .title { color: #fff; font-weight: 700; font-size: 17px; text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5); letter-spacing: 0.02em; }
+  .topbar .title small { font-weight: 400; opacity: 0.7; font-size: 11px; letter-spacing: 0.14em; margin-left: 8px; text-transform: uppercase; }
+
+  .gloss { border: 1px solid #1d3c66; border-radius: 14px; color: #fff; font: inherit; font-weight: 700; font-size: 12px;
+    text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4); cursor: pointer; padding: 7px 16px;
+    background: linear-gradient(180deg, #8ab4e8, #3968a5 50%, #2c5590);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 3px 6px rgba(0, 0, 0, 0.35); }
+  .gloss:hover { background: linear-gradient(180deg, #9cc4f2, #4272ae 50%, #35619c); }
+  .gloss:active { box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.45); }
+  .gloss.red { border-color: #7a1f1f; background: linear-gradient(180deg, #f09a9a, #c0392b 50%, #96281b); }
+  .gloss.red:hover { background: linear-gradient(180deg, #f7adad, #d24437 50%, #a52f22); }
+
+  .cols { display: flex; min-height: 540px; }
+
+  /* linen list panel */
+  .list { width: 250px; flex: none; background-color: #97a5b8;
+    background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 4px),
+      repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 4px);
+    box-shadow: inset -14px 0 24px rgba(0, 0, 0, 0.22), inset 2px 0 0 rgba(255, 255, 255, 0.25);
+    padding: 14px 12px; overflow-y: auto; }
+  .note-item { border-radius: 8px; padding: 9px 12px; margin-bottom: 7px; cursor: pointer;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(0, 0, 0, 0.08));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(30, 45, 70, 0.35); }
+  .note-item .t { color: #1f2c40; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .note-item .d { color: #43536b; font-size: 10.5px; margin-top: 1px; }
+  .note-item.sel { background: linear-gradient(180deg, #8ab4e8, #3968a5); border-color: #1d3c66; }
+  .note-item.sel .t { color: #fff; text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4); }
+  .note-item.sel .d { color: #cfe2f8; }
+
+  /* the legal pad */
+  .padwrap { flex: 1; padding: 34px 34px 26px; display: flex; justify-content: center; align-items: flex-start; background: rgba(0, 0, 0, 0.04); }
+  .pad { width: 100%; max-width: 520px; min-height: 460px; position: relative; transform: rotate(-0.5deg);
+    background: repeating-linear-gradient(180deg, transparent 0 27px, #aacbe8 27px 28px), #fdf9c4;
+    border-radius: 3px 10px 10px 3px;
+    box-shadow: 0 18px 44px rgba(20, 30, 50, 0.5), 0 2px 0 #d9c46a, 0 3px 0 #cbb558, 4px 0 0 #e8dfae;
+    padding: 34px 28px 40px 72px; }
+  .pad::before { /* red margin line */
+    content: ""; position: absolute; top: 0; bottom: 0; left: 52px; width: 1px;
+    background: #e08a8a; box-shadow: 2px 0 0 #e08a8a; }
+  .pad::after { /* stitching */
+    content: ""; position: absolute; inset: 7px; border: 1.5px dashed rgba(160, 140, 60, 0.55); border-radius: 3px; pointer-events: none; }
+  .pin { position: absolute; top: -13px; left: 50%; margin-left: -16px; width: 32px; height: 32px; border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #ff9d9d, #d02f2f 55%, #8f1414);
+    box-shadow: 0 6px 10px rgba(20, 30, 50, 0.5), inset 0 -3px 6px rgba(0, 0, 0, 0.3); }
+  .pad .date { position: absolute; top: 10px; right: 22px; font-size: 11px; color: #a59a5c; font-style: italic; }
+  .writing { font-family: "Marker Felt", "Comic Sans MS", "Segoe Print", cursive; color: #2b3a55;
+    font-size: 17px; line-height: 28px; min-height: 380px; outline: none; caret-color: #d02f2f; }
+  .writing:empty::before { content: "Write something…"; color: #b3ab7a; }
+  .wordcount { text-align: right; font-size: 10.5px; color: #a59a5c; font-style: italic; padding: 8px 4px 0; }
+
+  .toolbar { display: flex; gap: 10px; align-items: center; padding: 12px 16px; background: rgba(0, 0, 0, 0.14); border-top: 1px solid rgba(0, 0, 0, 0.3); }
+</style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title">Notes <small>Local Storage Edition</small></div>
+      <button class="gloss" id="newBtn">＋ New Note</button>
+    </div>
+    <div class="cols">
+      <div class="list" id="list"></div>
+      <div class="padwrap">
+        <div class="pad">
+          <div class="pin"></div>
+          <div class="date" id="padDate"></div>
+          <div class="writing" id="writing" contenteditable="true" spellcheck="false"></div>
+          <div class="wordcount" id="wc">0 words</div>
+        </div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="gloss red" id="delBtn">🗑 Delete Note</button>
+      <span style="color:#cfd9e8;font-size:11px;margin-left:auto;opacity:0.8">Notes are saved in your browser automatically</span>
+    </div>
+  </div>
+
+  <script>
+    const KEY = "skeuo.notes";
+    let notes, sel;
+    try { notes = JSON.parse(localStorage.getItem(KEY) || "null") || null; } catch (e) { notes = null; }
+    if (!notes) {
+      notes = [
+        { id: 1, t: "Grocery list", d: "2026-10-10", b: "pick up after work:<br>• milk<br>• bread<br>• gummy frogs (important)" },
+        { id: 2, t: "Design ideas", d: "2026-10-11", b: "what if buttons looked like REAL buttons?<br><br>• gloss highlights<br>• pixel-perfect bevels<br>• shadows you can feel" }
+      ];
+      sel = 1;
+    } else { sel = notes[0].id; }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(notes)); } catch (e) {} }
+    function fmtDate(s) { const d = new Date(s); return isNaN(d) ? s : d.toDateString().slice(4); }
+
+    const list = document.getElementById("list"), writing = document.getElementById("writing");
+    function render() {
+      document.getElementById("list").innerHTML = notes.map(n =>
+        '<div class="note-item' + (n.id === sel ? " sel" : "") + '" data-id="' + n.id + '">' +
+        '<div class="t">' + n.t + "</div><div class=" + '"d">' + fmtDate(n.d) + "</div></div>").join("");
+      const note = notes.find(n => n.id === sel);
+      writing.innerHTML = note ? note.b : "";
+      document.getElementById("padDate").textContent = note ? fmtDate(note.d) : "";
+      wc();
+      list.querySelectorAll(".note-item").forEach(el => el.addEventListener("click", () => {
+        sel = +el.dataset.id; save(); render();
+      }));
+    }
+    function wc() {
+      const words = (writing.textContent.trim().match(/\S+/g) || []).length;
+      document.getElementById("wc").textContent = words + (words === 1 ? " word" : " words");
+    }
+    writing.addEventListener("input", () => {
+      const note = notes.find(n => n.id === sel);
+      if (!note) return;
+      note.b = writing.innerHTML;
+      note.t = (writing.textContent.trim().split("\n")[0] || "New Note").slice(0, 32);
+      note.d = new Date().toISOString().slice(0, 10);
+      save();
+      const item = list.querySelector('.note-item[data-id="' + sel + '"] .t');
+      if (item) item.textContent = note.t;
+      wc();
+    });
+    document.getElementById("newBtn").addEventListener("click", () => {
+      const id = Date.now();
+      notes.unshift({ id: id, t: "New Note", d: new Date().toISOString().slice(0, 10), b: "" });
+      sel = id; save(); render(); writing.focus();
+    });
+    document.getElementById("delBtn").addEventListener("click", () => {
+      if (!confirm("Delete this note?")) return;
+      notes = notes.filter(n => n.id !== sel);
+      sel = notes.length ? notes[0].id : null;
+      if (!notes.length) notes = [{ id: Date.now(), t: "New Note", d: new Date().toISOString().slice(0, 10), b: "" }], sel = notes[0].id;
+      save(); render();
+    });
+    document.getElementById("padDate").textContent = new Date().toDateString().slice(4);
+    render();
+  </script>
+</body>
+</html>
