@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start — Metro Tiles</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { background: #1a1a1f; color: #fff; font-family: "Segoe UI", "Segoe UI Light", system-ui, sans-serif; overflow: hidden; }
+
+  .start { height: 100vh; overflow-x: auto; overflow-y: hidden; padding: 34px 56px 20px; scroll-behavior: smooth; }
+  .start::-webkit-scrollbar { height: 10px; }
+  .start::-webkit-scrollbar-thumb { background: #3a3a44; }
+
+  .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+  .top h1 { font-size: 42px; font-weight: 200; letter-spacing: -0.01em; }
+  .user { display: flex; align-items: center; gap: 10px; font-weight: 300; font-size: 15px; color: #cfcfd6; }
+  .user .pic { width: 40px; height: 40px; background: #d80073; display: grid; place-items: center; font-size: 19px; }
+
+  .groups { display: flex; gap: 70px; align-items: flex-start; width: max-content; padding-bottom: 12px; }
+  .group { flex: none; }
+  .ghead { font-size: 20px; font-weight: 300; color: #9a9aa5; margin: 4px 0 12px; display: flex; justify-content: space-between; }
+  .ghead .more { font-size: 22px; color: #2672ec; cursor: pointer; line-height: 1; }
+  .ghead .more:hover { color: #fff; }
+
+  .tiles { display: grid; grid-template-columns: repeat(4, 84px); grid-auto-rows: 84px; gap: 8px; }
+  .tile { border: 0; cursor: pointer; display: flex; align-items: flex-end; padding: 8px 10px; color: #fff; font-family: inherit; font-size: 12px; font-weight: 400; text-align: left; overflow: hidden; position: relative; outline-offset: 3px; }
+  .tile:hover { outline: 2px solid #cfcfd6; }
+  .tile .glyph { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -54%); font-size: 34px; line-height: 1; }
+  .t-wide { grid-column: span 2; }
+  .t-big { grid-column: span 2; grid-row: span 2; }
+  .t-big .glyph { font-size: 64px; }
+  .tile .name { position: relative; z-index: 2; }
+
+  /* live tile — flips between two faces */
+  .live { perspective: 400px; }
+  .live .faces { position: absolute; inset: 0; transform-style: preserve-3d; animation: flip 5.5s ease-in-out infinite; }
+  .live .face { position: absolute; inset: 0; backface-visibility: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .live .face .big-g { font-size: 30px; line-height: 1; }
+  .live .face .cnt { font-size: 15px; font-weight: 300; }
+  .live .face.b { transform: rotateX(180deg); background: rgba(0, 0, 0, 0.28); }
+  @keyframes flip { 0%, 42% { transform: rotateX(0); } 50%, 92% { transform: rotateX(180deg); } 100% { transform: rotateX(360deg); } }
+
+  /* app overlay */
+  .app { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; padding: 46px 60px; }
+  .app.on { display: flex; animation: appin 0.28s ease; }
+  @keyframes appin { from { opacity: 0; transform: scale(1.06); } }
+  .app .back { background: none; border: 1.5px solid #fff; color: #fff; width: 44px; height: 44px; font-size: 19px; cursor: pointer; margin-bottom: 20px; }
+  .app .back:hover { background: rgba(255, 255, 255, 0.15); }
+  .app h1 { font-size: 52px; font-weight: 200; }
+  .app p { font-size: 17px; font-weight: 300; color: rgba(255, 255, 255, 0.85); margin-top: 10px; max-width: 480px; line-height: 1.6; }
+  .app .fake { margin-top: 34px; display: grid; grid-template-columns: repeat(3, 150px); gap: 12px; }
+  .app .fake div { height: 110px; background: rgba(0, 0, 0, 0.22); display: grid; place-items: center; font-size: 34px; }
+
+  .hint { position: fixed; bottom: 14px; left: 56px; color: #55555f; font-size: 12px; font-weight: 300; }
+  @media (max-width: 700px) { .start { padding: 24px 24px 16px; overflow-y: auto; } .groups { flex-direction: column; gap: 40px; width: auto; } body { overflow: auto; } }
+</style>
+</head>
+<body>
+  <div class="start">
+    <div class="top">
+      <h1>Start</h1>
+      <div class="user"><div class="pic">😊</div> Aku</div>
+    </div>
+
+    <div class="groups">
+      <div class="group">
+        <div class="ghead">Mail &amp; People <span class="more">→</span></div>
+        <div class="tiles">
+          <button class="tile live t-big" style="background:#2672ec" data-app="Mail" data-c="#2672ec">
+            <span class="faces">
+              <span class="face"><span class="big-g">✉</span><span class="cnt">4 unread</span></span>
+              <span class="face b"><span class="big-g">📎</span><span class="cnt">1 attachment</span></span>
+            </span>
+            <span class="name">Mail</span>
+          </button>
+          <button class="tile" style="background:#00a300" data-app="Calendar" data-c="#00a300"><span class="glyph">📅</span><span class="name">Calendar</span></button>
+          <button class="tile" style="background:#7e3878" data-app="People" data-c="#7e3878"><span class="glyph">👤</span><span class="name">People</span></button>
+          <button class="tile t-wide" style="background:#00aba9" data-app="Messaging" data-c="#00aba9"><span class="glyph">💬</span><span class="name">Messaging</span></button>
+          <button class="tile" style="background:#d80073" data-app="Photos" data-c="#d80073"><span class="glyph">📷</span><span class="name">Photos</span></button>
+          <button class="tile" style="background:#2672ec" data-app="SkyDrive" data-c="#2672ec"><span class="glyph">☁</span><span class="name">SkyDrive</span></button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="ghead">Media <span class="more">→</span></div>
+        <div class="tiles">
+          <button class="tile t-wide" style="background:#e51400" data-app="Video" data-c="#e51400"><span class="glyph">▶</span><span class="name">Video</span></button>
+          <button class="tile t-big" style="background:#f09609" data-app="Music" data-c="#f09609">
+            <span class="glyph">♫</span><span class="name">Music</span>
+          </button>
+          <button class="tile" style="background:#00aba9" data-app="Camera" data-c="#00aba9"><span class="glyph">📷</span><span class="name">Camera</span></button>
+          <button class="tile" style="background:#2672ec" data-app="News" data-c="#2672ec"><span class="glyph">📰</span><span class="name">News</span></button>
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="ghead">Fun <span class="more">→</span></div>
+        <div class="tiles">
+          <button class="tile" style="background:#d80073" data-app="Solitaire" data-c="#d80073"><span class="glyph">🃏</span><span class="name">Solitaire</span></button>
+          <button class="tile" style="background:#00a300" data-app="Xbox Games" data-c="#00a300"><span class="glyph">🎮</span><span class="name">Games</span></button>
+          <button class="tile" style="background:#f09609" data-app="Store" data-c="#f09609"><span class="glyph">🛍</span><span class="name">Store</span></button>
+          <button class="tile" style="background:#7e3878" data-app="Paint" data-c="#7e3878"><span class="glyph">🖌</span><span class="name">Paint</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app" id="app">
+    <button class="back" id="back">◀</button>
+    <h1 id="appName">Mail</h1>
+    <p>Semua app dalam Windows 8 buka full-screen begini — warna penuh, typography besar, dan butang back semata-mata. Tekan ◀ untuk kembali ke Start.</p>
+    <div class="fake"><div>📁</div><div>📊</div><div>🌐</div></div>
+  </div>
+
+  <div class="hint">Scroll sideways → · Click a tile to open its app</div>
+
+  <script>
+    const appEl = document.getElementById('app');
+    document.querySelectorAll('.tile').forEach(t => {
+      t.addEventListener('click', () => {
+        document.getElementById('appName').textContent = t.dataset.app;
+        appEl.style.background = t.dataset.c || '#2672ec';
+        appEl.classList.add('on');
+      });
+    });
+    document.getElementById('back').addEventListener('click', () => appEl.classList.remove('on'));
+    addEventListener('keydown', e => { if (e.key === 'Escape') appEl.classList.remove('on'); });
+  </script>
+</body>
+</html>

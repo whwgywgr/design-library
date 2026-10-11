@@ -2,7 +2,7 @@
 title: Flat Design — Material Era
 description: The 2013–2018 reaction to glossy Web 2.0 — flat colors, no gradients, an app bar with hamburger drawer, ripple buttons, cards, a floating action button and snackbars. Roboto-era minimalism.
 tags: [flat, material, web-app]
-order: 12
+order: 13
 ---
 
 # Flat Design — Material Era
