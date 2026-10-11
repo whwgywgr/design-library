@@ -352,7 +352,7 @@ function processImported(data, fileName) {
       file: "index.html",
       html: composeImportedPreview(htmlContent, data.css, data.js)
     } : null,
-    _order: data.order != null ? data.order : 3
+    _order: data.order != null ? data.order : 900
   };
 }
 
@@ -405,8 +405,11 @@ function main() {
   });
 
   // sort: order, then title
+  // sort: newest / highest order first — latest designs sit at the top of the gallery
   designs.sort(function (a, b) {
-    return (a._order - b._order) || String(a.title).localeCompare(String(b.title));
+    return (b._order - a._order) ||
+      String(b.updated).localeCompare(String(a.updated)) ||
+      String(a.title).localeCompare(String(b.title));
   });
   designs.forEach(function (d) { delete d._order; });
 
