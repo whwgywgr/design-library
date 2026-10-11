@@ -17,7 +17,7 @@
   })();
   var LOCAL = loadLocal();
   var DESIGNS = mergeDesigns();
-  var state = { q: "", tag: "All" };
+  var state = { q: "", tag: "All", sort: "newest" };
 
   /* ---------- helpers ---------- */
 
@@ -350,6 +350,8 @@
     document.title = "Design Library";
     var tags = allTags();
     var items = filtered();
+    if (state.sort === "oldest") items = items.slice().reverse();
+    else if (state.sort === "az") items = items.slice().sort(function (a, b) { return a.title.localeCompare(b.title); });
 
     var html =
       '<div class="container">' +
@@ -362,6 +364,8 @@
         return '<button class="chip' + (state.tag === t.name ? " active" : "") + '" data-tag="' + esc(t.name) + '">' +
           esc(t.name) + ' <span class="chip-n">' + t.count + "</span></button>";
       }).join("") +
+      '<select class="sortsel" id="sortSel" title="Sort order">' +
+      '<option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="az">Name A–Z</option></select>' +
       '<span class="toolbar-meta">' + items.length + " design" + (items.length === 1 ? "" : "s") + "</span></div>";
 
     if (!DESIGNS.length) {
@@ -384,6 +388,16 @@
         renderGallery();
       });
     });
+
+    // sort control
+    var sortSel = $("#sortSel");
+    if (sortSel) {
+      sortSel.value = state.sort;
+      sortSel.addEventListener("change", function () {
+        state.sort = sortSel.value;
+        renderGallery();
+      });
+    }
 
     // live card previews (lazy)
     if (items.length) attachCardPreviews(items);
@@ -549,6 +563,7 @@
       '<div class="detail-actions">' + actions + "</div></div>" +
       (tabs ? '<div class="tabs">' + tabs + "</div>" : "") +
       '<div class="panel" id="panel"></div>' +
+      '<div id="related"></div>' +
       "</div>";
 
     // actions
@@ -587,6 +602,19 @@
         '<span class="pn-mid">' + (idx + 1) + " / " + DESIGNS.length + "</span>" +
         '<a class="pn" href="#/d/' + encodeURIComponent(next.id) + '">' + esc(next.title) + " ›</a>";
       document.querySelector(".detail").appendChild(nav);
+    }
+
+    // related designs (shared tags)
+    var rel = DESIGNS.filter(function (x) {
+      return x.id !== d.id && (x.tags || []).some(function (t) { return (d.tags || []).indexOf(t) !== -1; });
+    }).slice(0, 3);
+    var relEl = document.getElementById("related");
+    if (relEl && rel.length) {
+      relEl.innerHTML = '<div class="rel-head">Related designs</div><div class="rel-cards">' +
+        rel.map(function (r) {
+          return '<a class="rel-card" href="#/d/' + encodeURIComponent(r.id) + '"><b>' + esc(r.title) + "</b><span>" +
+            (r.tags || []).slice(0, 3).join(" · ") + "</span></a>";
+        }).join("") + "</div>";
     }
 
     // tabs
@@ -1113,6 +1141,12 @@
         e.preventDefault();
         var j = e.key === "ArrowLeft" ? (i - 1 + DESIGNS.length) % DESIGNS.length : (i + 1) % DESIGNS.length;
         location.hash = "#/d/" + encodeURIComponent(DESIGNS[j].id);
+        return;
+      }
+      // ? opens the guide
+      if (e.key === "?" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+        e.preventDefault();
+        openGuide();
       }
     });
 

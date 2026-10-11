@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maison Noir — Dark Luxury</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #f0ede6; font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; position: relative; overflow-x: hidden; }
+  body::before { content: ""; position: fixed; inset: 0; background: radial-gradient(900px 500px at 50% -10%, rgba(201, 162, 39, 0.12), transparent 60%); pointer-events: none; }
+  .serif { font-family: Georgia, "Times New Roman", serif; }
+  .gold { color: #c9a227; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; border-bottom: 1px solid rgba(201, 162, 39, 0.45); }
+  .maison { font-size: 15px; letter-spacing: 0.42em; color: #c9a227; font-weight: 500; }
+  nav .links { display: flex; gap: 26px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: #8a8578; }
+  nav .links a { color: inherit; text-decoration: none; transition: color 0.2s; }
+  nav .links a:hover { color: #e8d9a0; }
+
+  header { text-align: center; padding: 92px 0 76px; }
+  .est { font-size: 11px; letter-spacing: 0.4em; color: #8a8578; text-transform: uppercase; }
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(40px, 7vw, 72px); line-height: 1.12; margin: 26px 0 24px; color: #f0ede6; }
+  h1 em { font-style: italic; color: #e8d9a0; }
+  .divider { width: 70px; height: 1px; background: #c9a227; margin: 0 auto 24px; }
+  .hero-p { color: #8a8578; font-size: 15.5px; max-width: 520px; margin: 0 auto 36px; line-height: 1.8; }
+  .hero-cta { display: inline-block; border: 1px solid #c9a227; color: #e8d9a0; text-decoration: none; font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; padding: 14px 34px; transition: all 0.25s; }
+  .hero-cta:hover { background: #c9a227; color: #0a0a0a; }
+
+  .products { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; padding: 20px 0 60px; position: relative; }
+  .prod { border: 1px solid rgba(201, 162, 39, 0.35); padding: 40px 26px 34px; text-align: center; position: relative; overflow: hidden; transition: border-color 0.3s; }
+  .prod:hover { border-color: #c9a227; }
+  .prod .glow { position: absolute; inset: 0; background: radial-gradient(220px 220px at var(--mx, 50%) var(--my, 50%), rgba(201, 162, 39, 0.16), transparent 70%); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+  .prod:hover .glow { opacity: 1; }
+  .prod .no { font-family: Georgia, serif; font-size: 40px; color: #c9a227; margin-bottom: 14px; }
+  .prod h3 { font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 500; margin-bottom: 10px; }
+  .prod p { font-size: 13px; color: #8a8578; line-height: 1.75; margin-bottom: 18px; }
+  .prod .price { font-family: Georgia, serif; font-size: 16px; color: #e8d9a0; }
+
+  .quote { border-top: 1px solid rgba(201, 162, 39, 0.45); border-bottom: 1px solid rgba(201, 162, 39, 0.45); padding: 60px 30px; text-align: center; margin: 20px 0 60px; }
+  .quote p { font-family: Georgia, serif; font-style: italic; font-size: clamp(20px, 3.4vw, 28px); line-height: 1.55; color: #e8d9a0; max-width: 640px; margin: 0 auto; }
+  .quote .by { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: #8a8578; margin-top: 20px; }
+
+  footer { border-top: 1px solid rgba(201, 162, 39, 0.45); padding: 26px 0 44px; text-align: center; font-size: 10.5px; letter-spacing: 0.3em; text-transform: uppercase; color: #8a8578; }
+  footer .g { color: #c9a227; }
+
+  @media (max-width: 740px) { .products { grid-template-columns: 1fr; } nav .links { display: none; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <div class="maison">MAISON NOIR</div>
+      <div class="links"><a href="#">Collection</a><a href="#">Atelier</a><a href="#">Maison</a><a href="#">Contact</a></div>
+    </nav>
+
+    <header>
+      <div class="est">Maison Noir · Paris · Est. 1931</div>
+      <h1>The art of less,<br><em>finished in gold.</em></h1>
+      <div class="divider"></div>
+      <p class="hero-p">Ninety-five years of quiet obsession — objects made slowly, in black and gold, for the few who understand why there is no logo.</p>
+      <a class="hero-cta" href="#">Discover the collection</a>
+    </header>
+
+    <div class="products" id="products">
+      <div class="prod"><div class="glow"></div><div class="no">N°1</div><h3>Noir Absolu</h3><p>Extrait de parfum. Smoked vetiver, black orchid, a whisper of amber that lasts three days on silk.</p><div class="price">RM 1,290</div></div>
+      <div class="prod"><div class="glow"></div><div class="no">N°2</div><h3>Heure d'Or</h3><p>Hand-finished timepiece. 38mm case in blackened steel, champagne dial, one gold hand for the hour that matters.</p><div class="price">RM 18,500</div></div>
+      <div class="prod"><div class="glow"></div><div class="no">N°3</div><h3>Cahier Noir</h3><p>Notebook in full-grain calfskin. 240 pages of cotton paper, gilded edges, and nothing written — yet.</p><div class="price">RM 480</div></div>
+    </div>
+
+    <div class="quote">
+      <p>“Luxury is not the price tag. It is the silence of a thing so well made that it never needs to speak.”</p>
+      <div class="by">— Henri Noir, founder</div>
+    </div>
+  </div>
+
+  <footer><div class="wrap"><span>Maison Noir <span class="g">◆</span> Paris — Kuala Lumpur</span></div></footer>
+
+  <script>
+    // cursor-following golden glow on each product card
+    document.querySelectorAll(".prod").forEach(card => {
+      card.addEventListener("pointermove", e => {
+        const r = card.getBoundingClientRect();
+        card.querySelector(".glow").style.setProperty("--mx", (e.clientX - r.left) + "px");
+        card.querySelector(".glow").style.setProperty("--my", (e.clientY - r.top) + "px");
+      });
+    });
+    // quiet fade-in on scroll
+    const io = new IntersectionObserver(es => es.forEach(en => {
+      en.target.style.transition = "opacity 1s ease, transform 1s ease";
+      if (en.isIntersecting) { en.target.style.opacity = 1; en.target.style.transform = "none"; }
+    }), { threshold: 0.2 });
+    document.querySelectorAll(".prod, .quote").forEach(el => {
+      el.style.opacity = 0; el.style.transform = "translateY(16px)";
+      io.observe(el);
+    });
+  </script>
+</body>
+</html>

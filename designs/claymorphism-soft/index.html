@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clayly — Soft 3D Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; padding: 44px 20px 70px;
+    background: linear-gradient(160deg, #c9b8ff, #ffd6e8 60%, #fff1c9); color: #4a3f66; }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .head { text-align: center; margin-bottom: 34px; }
+  .head h1 { font-size: clamp(30px, 5vw, 44px); font-weight: 800; letter-spacing: -0.02em; color: #5a4a8a; }
+  .head p { color: #7a6ba0; font-size: 15px; margin-top: 6px; }
+
+  .clay, .clay-sm { border-radius: 30px; background: #fff; }
+  .clay { padding: 28px; box-shadow: 26px 26px 48px rgba(120, 90, 180, 0.28),
+    inset -10px -10px 22px rgba(0, 0, 0, 0.06), inset 10px 10px 22px rgba(255, 255, 255, 0.75); }
+  .clay-sm { padding: 20px; border-radius: 26px; }
+
+  .pink { background: #ff9ec4; box-shadow: 22px 22px 44px rgba(230, 90, 150, 0.45), inset -8px -8px 18px rgba(0, 0, 0, 0.08), inset 8px 8px 18px rgba(255, 255, 255, 0.7); color: #7c2b52; }
+  .mint { background: #90e0c8; box-shadow: 22px 22px 44px rgba(40, 160, 125, 0.4), inset -8px -8px 18px rgba(0, 0, 0, 0.07), inset 8px 8px 18px rgba(255, 255, 255, 0.7); color: #1d6b52; }
+  .butter { background: #ffd166; box-shadow: 22px 22px 44px rgba(220, 160, 40, 0.45), inset -8px -8px 18px rgba(0, 0, 0, 0.08), inset 8px 8px 18px rgba(255, 255, 255, 0.75); color: #7a5a10; }
+  .violet { background: #b49cf8; box-shadow: 22px 22px 44px rgba(120, 90, 200, 0.4), inset -8px -8px 18px rgba(0, 0, 0, 0.08), inset 8px 8px 18px rgba(255, 255, 255, 0.65); color: #3d2b7a; }
+
+  .dash { display: grid; grid-template-columns: 1.4fr 1fr; gap: 26px; align-items: start; }
+  @media (max-width: 720px) { .dash { grid-template-columns: 1fr; } }
+
+  .cardtitle { font-size: 17px; font-weight: 800; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .cardtitle .pct { font-size: 13px; background: rgba(255, 255, 255, 0.55); padding: 4px 12px; border-radius: 999px; }
+
+  .habit { display: flex; align-items: center; gap: 14px; background: rgba(255, 255, 255, 0.5); border-radius: 20px; padding: 13px 16px; margin-bottom: 13px; cursor: pointer; transition: transform 0.12s; }
+  .habit:active { transform: scale(0.96); }
+  .habit .em { width: 42px; height: 42px; flex: none; background: #fff; border-radius: 14px; display: grid; place-items: center; font-size: 21px; box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.06), inset 4px 4px 8px rgba(255, 255, 255, 0.8); }
+  .habit .tx { flex: 1; font-weight: 700; font-size: 14px; }
+  .habit .tx small { display: block; font-weight: 500; font-size: 11.5px; opacity: 0.65; }
+  .habit .chk { width: 34px; height: 34px; flex: none; border-radius: 50%; background: #fff; box-shadow: inset 3px 3px 7px rgba(0, 0, 0, 0.1), inset -3px -3px 7px rgba(255, 255, 255, 0.9); display: grid; place-items: center; color: #fff; font-size: 16px; transition: all 0.2s; }
+  .habit.done .chk { background: #5a4a8a; }
+  .habit.done .tx { text-decoration: line-through; opacity: 0.6; }
+  @keyframes squish { 40% { transform: scale(0.9); } }
+
+  .blobbar { height: 22px; border-radius: 999px; background: rgba(255, 255, 255, 0.5); box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.08); margin-top: 16px; overflow: hidden; }
+  .blobbar i { display: block; height: 100%; width: 0; border-radius: 999px; background: repeating-linear-gradient(135deg, #fff3 0 8px, transparent 8px 16px), #5a4a8a; transition: width 0.5s ease; }
+
+  .side { display: grid; gap: 26px; }
+  .temp { text-align: center; }
+  .temp .deg { font-size: 44px; font-weight: 800; margin: 10px 0 4px; }
+  .temp .steppers { display: flex; justify-content: center; gap: 14px; margin-top: 8px; }
+  .temp button { width: 46px; height: 46px; border: 0; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; color: inherit; background: rgba(255, 255, 255, 0.55); box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.08), inset 4px 4px 8px rgba(255, 255, 255, 0.8), 4px 4px 10px rgba(120, 90, 180, 0.25); }
+  .temp button:active { box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.15); }
+  .temp small { display: block; margin-top: 8px; font-size: 11.5px; opacity: 0.7; }
+
+  .tile-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .tile-c { border-radius: 24px; padding: 16px 12px; text-align: center; }
+  .tile-c .em { font-size: 26px; }
+  .tile-c .v { font-weight: 800; margin-top: 6px; font-size: 15px; }
+  .tile-c .l { font-size: 10.5px; opacity: 0.7; }
+
+  .switchrow { display: flex; align-items: center; justify-content: space-between; }
+  .switchrow .lbl { font-weight: 700; font-size: 14px; }
+  .sw { width: 62px; height: 34px; border: 0; border-radius: 999px; background: #fff; position: relative; cursor: pointer; box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.12), inset -4px -4px 8px rgba(255, 255, 255, 0.9); }
+  .sw i { position: absolute; top: 5px; left: 5px; width: 24px; height: 24px; border-radius: 50%; background: #ffd166; box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.2), inset -2px -2px 5px rgba(0, 0, 0, 0.12), inset 2px 2px 5px rgba(255, 255, 255, 0.8); transition: left 0.25s cubic-bezier(0.5, 1.6, 0.4, 1), background 0.25s; }
+  .sw.on i { left: 33px; background: #5a4a8a; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="head">
+      <h1>Clayly — morning dashboard</h1>
+      <p>Everything soft. Everything squishy. Click the habits, steer the thermostat.</p>
+    </div>
+
+    <div class="dash">
+      <div class="clay">
+        <div class="cardtitle">Morning routine <span class="pct" id="pct">1 / 3 done</span></div>
+        <div id="habits"></div>
+        <div class="blobbar"><i id="blobfill"></i></div>
+      </div>
+
+      <div class="side">
+        <div class="clay-sm violet temp">
+          <div class="cardtitle" style="margin-bottom:0">Thermostat</div>
+          <div class="deg"><span id="deg">22</span>°</div>
+          <div class="steppers">
+            <button id="minus">−</button>
+            <button id="plus">+</button>
+          </div>
+          <small id="mode">cosy mode · heating</small>
+        </div>
+
+        <div class="clay-sm pink switchrow">
+          <span class="lbl">Studio lights</span>
+          <button class="sw on" id="lsw" aria-label="Toggle lights"><i></i></button>
+        </div>
+
+        <div class="tile-row">
+          <div class="clay-sm tile-c mint"><div class="em">💧</div><div class="v">6/8</div><div class="l">glasses</div></div>
+          <div class="clay-sm tile-c butter"><div class="em">📚</div><div class="v">24p</div><div class="l">pages read</div></div>
+          <div class="clay-sm tile-c violet"><div class="em">💪</div><div class="v">20m</div><div class="l">stretch</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // habits
+    const habits = [
+      { em: "☀️", tx: "Wake up at 7", s: "no snoozing", done: true },
+      { em: "💧", tx: "Big glass of water", s: "before coffee", done: false },
+      { em: "🏃", tx: "Morning run", s: "around the park", done: false }
+    ];
+    function renderHabits() {
+      document.getElementById("habits").innerHTML = habits.map((h, i) =>
+        '<div class="habit' + (h.done ? " done" : "") + '" data-i="' + i + '" style="animation:squish .3s">' +
+        '<span class="em">' + h.em + '</span><span class="tx">' + h.tx + "<small>" + h.s + "</small></span>" +
+        '<span class="chk">' + (h.done ? "✓" : "") + "</span></div>").join("");
+      document.querySelectorAll(".habit").forEach(el => el.addEventListener("click", () => {
+        habits[+el.dataset.i].done = !habits[+el.dataset.i].done;
+        renderHabits();
+      }));
+      const done = habits.filter(h => h.done).length;
+      document.getElementById("pct").textContent = done + " / " + habits.length + " done";
+      document.getElementById("blobfill").style.width = (done / habits.length * 100) + "%";
+    }
+    renderHabits();
+
+    // thermostat
+    let deg = 22;
+    function renderDeg() {
+      document.getElementById("deg").textContent = deg;
+      document.getElementById("mode").textContent = deg >= 24 ? "toasty mode · heating" : deg <= 18 ? "cool mode · standby" : "cosy mode · heating";
+    }
+    document.getElementById("plus").addEventListener("click", () => { if (deg < 30) { deg++; renderDeg(); } });
+    document.getElementById("minus").addEventListener("click", () => { if (deg > 16) { deg--; renderDeg(); } });
+
+    // lights
+    document.getElementById("lsw").addEventListener("click", function () {
+      this.classList.toggle("on");
+    });
+  </script>
+</body>
+</html>

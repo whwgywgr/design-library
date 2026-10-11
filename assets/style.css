@@ -407,6 +407,45 @@ button {
 .pn:last-child { text-align: right; }
 .pn-mid { color: var(--text-3); font-size: 12px; flex: none; }
 
+.sortsel {
+  margin-left: auto;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 12px;
+  padding: 0 10px;
+  outline: none;
+  cursor: pointer;
+}
+.sortsel:focus { border-color: var(--border-strong); }
+
+.rel-head {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 34px 0 12px;
+}
+.rel-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.rel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+.rel-card b { font-size: 13px; font-weight: 650; letter-spacing: -0.01em; color: var(--text); }
+.rel-card span { font-size: 11px; color: var(--text-3); }
+.rel-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+@media (max-width: 700px) { .rel-cards { grid-template-columns: 1fr; } }
+
 .card-body {
   padding: 14px 16px 15px;
   display: flex;
